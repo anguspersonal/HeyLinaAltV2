@@ -5,49 +5,53 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const palette = {
+  midnightBlue: '#1F3666',
+  lightOlive: '#CDE572',
+  cream: '#FFF9E5',
+  powderBlue: '#99BBFF',
+  coral: '#FFA599',
+  darkPurple: '#5D2680',
+};
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: palette.midnightBlue,
+    background: palette.cream,
+    tint: palette.midnightBlue,
+    icon: palette.midnightBlue,
+    tabIconDefault: palette.midnightBlue,
+    tabIconSelected: palette.lightOlive,
+    ...palette,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: palette.cream,
+    background: palette.midnightBlue,
+    tint: palette.lightOlive,
+    icon: palette.cream,
+    tabIconDefault: palette.cream,
+    tabIconSelected: palette.lightOlive,
+    ...palette,
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    sans: 'Inter',
+    serif: 'Montserrat',
+    rounded: 'Montserrat',
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
+    sans: 'Inter',
+    serif: 'Montserrat',
+    rounded: 'Montserrat',
     mono: 'monospace',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    sans: "'Inter', sans-serif",
+    serif: "'Montserrat', serif",
+    rounded: "'Montserrat', sans-serif",
+    mono: "monospace",
   },
 });
