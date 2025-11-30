@@ -1,9 +1,10 @@
 import { Link, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { FormWrapper } from '@/components/form-wrapper';
 import { useAuth } from '@/stores/auth';
 
 export default function LoginScreen() {
@@ -44,7 +45,7 @@ export default function LoginScreen() {
         Use your email and password to sign in, or create a new account.
       </ThemedText>
 
-      <View style={styles.form}>
+      <FormWrapper style={styles.form} onSubmit={handleSubmit}>
         <TextInput
           autoCapitalize="none"
           autoComplete="email"
@@ -75,7 +76,7 @@ export default function LoginScreen() {
             </ThemedText>
           )}
         </Pressable>
-      </View>
+      </FormWrapper>
 
       <Link href="/signup" style={styles.link}>
         <ThemedText type="link">Need to create an account?</ThemedText>

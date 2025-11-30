@@ -1,6 +1,7 @@
+import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { createClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
 const supabaseConfig = Constants.expoConfig?.extra?.supabase ?? {};
 const supabaseUrl = supabaseConfig.url ?? process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -22,12 +23,36 @@ const secureStoreAdapter = {
   removeItem: async (key: string) => SecureStore.deleteItemAsync(key),
 };
 
+const browserStorageAdapter = {
+  getItem: async (key: string) => {
+    try {
+      return globalThis?.localStorage?.getItem(key) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (key: string, value: string) => {
+    try {
+      globalThis?.localStorage?.setItem(key, value);
+    } catch {
+      // ignore write failures (e.g., storage disabled)
+    }
+  },
+  removeItem: async (key: string) => {
+    try {
+      globalThis?.localStorage?.removeItem(key);
+    } catch {
+      // ignore remove failures
+    }
+  },
+};
+
 export const supabase = createClient(
   supabaseUrl ?? '',
   supabaseAnonKey ?? '',
   {
     auth: {
-      storage: secureStoreAdapter,
+      storage: Platform.OS === 'web' ? browserStorageAdapter : secureStoreAdapter,
       detectSessionInUrl: false,
       persistSession: true,
       autoRefreshToken: true,

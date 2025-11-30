@@ -1,14 +1,15 @@
 import { Link, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { FormWrapper } from '@/components/form-wrapper';
 import { useAuth } from '@/stores/auth';
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { status, error, session, signUp } = useAuth();
+  const { status, error, session, signUp, notification } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [attempted, setAttempted] = useState(false);
@@ -29,10 +30,14 @@ export default function SignUpScreen() {
     }
     setAttempted(true);
     const cleanedEmail = email.trim().toLowerCase();
-    const success = await signUp({ email: cleanedEmail, password });
-    if (success) {
-      router.replace('/(tabs)');
+    const result = await signUp({ email: cleanedEmail, password });
+    if (!result.success) {
+      return;
     }
+    if (result.requiresConfirmation) {
+      return;
+    }
+    router.replace('/(tabs)');
   };
 
   return (
@@ -44,7 +49,7 @@ export default function SignUpScreen() {
         Sign up with a secure email and password so we can keep your chat safe.
       </ThemedText>
 
-      <View style={styles.form}>
+      <FormWrapper style={styles.form} onSubmit={handleSubmit}>
         <TextInput
           autoCapitalize="none"
           autoComplete="email"
@@ -66,6 +71,9 @@ export default function SignUpScreen() {
           onChangeText={setPassword}
         />
         {error && attempted ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+        {!error && notification ? (
+          <ThemedText style={styles.notification}>{notification}</ThemedText>
+        ) : null}
         <Pressable style={styles.button} onPress={handleSubmit} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -75,7 +83,7 @@ export default function SignUpScreen() {
             </ThemedText>
           )}
         </Pressable>
-      </View>
+      </FormWrapper>
 
       <Link href="/login" style={styles.link}>
         <ThemedText type="link">Already have an account?</ThemedText>
@@ -123,6 +131,10 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#C72C41',
+    marginTop: 4,
+  },
+  notification: {
+    color: '#0A7EA4',
     marginTop: 4,
   },
   link: {

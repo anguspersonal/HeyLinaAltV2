@@ -1,6 +1,5 @@
 import {
   createContext,
-  createElement,
   type PropsWithChildren,
   useCallback,
   useContext,
@@ -27,7 +26,8 @@ type AuthContextValue = {
   isReady: boolean;
   bootstrap: () => Promise<void>;
   signIn: (credentials: Credentials) => Promise<boolean>;
-  signUp: (credentials: Credentials) => Promise<boolean>;
+  signUp: (credentials: Credentials) => Promise<{ success: boolean; requiresConfirmation: boolean }>;
+  notification: string | null;
   signOut: () => Promise<void>;
 };
 
@@ -60,6 +60,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const handleSession = useCallback((newSession: Session | null) => {
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const bootstrap = useCallback(async () => {
     setStatus('loading');
     setError(null);
+    setNotification(null);
     try {
       const { data, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
@@ -92,6 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     async ({ email, password }: Credentials) => {
       setStatus('loading');
       setError(null);
+      setNotification(null);
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -112,7 +115,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     async ({ email, password }: Credentials) => {
       setStatus('loading');
       setError(null);
-      const { error: authError } = await supabase.auth.signUp({
+      setNotification(null);
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -120,10 +124,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (authError) {
         setError(friendlyErrorMessage(authError));
         setStatus('unauthenticated');
-        return false;
+        return { success: false, requiresConfirmation: false };
       }
 
-      return true;
+      const requiresConfirmation = !data.session;
+      if (requiresConfirmation) {
+        setStatus('unauthenticated');
+        setNotification('Check your email for the confirmation link to finish creating your account.');
+        return { success: true, requiresConfirmation: true };
+      }
+
+      return { success: true, requiresConfirmation: false };
     },
     []
   );
@@ -154,16 +165,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
       session,
       user,
       error,
+      notification,
       isReady,
       bootstrap,
       signIn,
       signUp,
       signOut,
     }),
-    [status, session, user, error, isReady, bootstrap, signIn, signUp, signOut]
+    [status, session, user, error, notification, isReady, bootstrap, signIn, signUp, signOut]
   );
 
-  return createElement(AuthContext.Provider, { value: contextValue }, children);
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

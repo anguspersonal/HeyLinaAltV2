@@ -1,5 +1,5 @@
-import type { ExpoConfig, ConfigContext } from 'expo/config';
 import 'dotenv/config';
+import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
@@ -13,6 +13,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
+    name: config.name ?? 'HeyLina',
+    slug: config.slug ?? 'heylina',
     extra: {
       ...config.extra,
       supabase: {
@@ -20,5 +22,5 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         anonKey: supabaseAnonKey,
       },
     },
-  };
+  } as ExpoConfig;
 };
