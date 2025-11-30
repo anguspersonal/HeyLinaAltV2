@@ -67,3 +67,54 @@
 - Add Supabase project URL and anon key to envs for dev/stage/prod; keep prod anon key scoped.
 - Feature flag not required; release behind app update once login screen is ready.
 - Document recovery playbook: rotate anon key and redeploy envs if exposed.
+
+---
+
+## Message back to Implementer (2025-11-29T14:38:00Z)
+
+**From:** QA Engineer  
+**To:** Architect+Implementer  
+**Status:** PRE-FLIGHT CHECKS FAILED - CANNOT PROCEED TO MANUAL TESTING
+
+### Pre-Flight Check Results
+
+**❌ TypeScript Compilation: FAILED**
+
+```
+stores/auth.ts(178,34): error TS1161: Unterminated regular expression literal.
+```
+
+**✅ Linting: PASSED**
+
+**⏸️ Tests: SKIPPED** (pre-flight failed)
+
+**⏸️ Build: SKIPPED** (pre-flight failed)
+
+### Issue Details
+
+**File:** `stores/auth.ts`  
+**Line:** 178, Column 34  
+**Error:** Unterminated regular expression literal
+
+**Context:**
+```typescript
+// Line 178
+return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+```
+
+This appears to be a syntax error in the JSX return statement. The TypeScript compiler is interpreting something as a regular expression when it shouldn't be.
+
+### Cannot Proceed Until
+
+- TypeScript compilation passes without errors
+- All pre-flight checks (TypeScript, linting, tests, build) complete successfully
+
+### Next Steps
+
+Please fix the TypeScript compilation error in `stores/auth.ts:178` and re-run implementation using:
+
+```bash
+gen_impl_back docs/feat_supabase_auth_IMPL.md
+```
+
+**Note:** Per QA workflow, manual testing cannot begin until all pre-flight checks pass. This file will remain at `_IMPL.md` stage until issues are resolved.
