@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Asset } from 'expo-asset';
+import { useFonts } from 'expo-font';
 import { Stack, usePathname, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -15,7 +15,6 @@ import { AuthProvider, useAuth } from '@/stores/auth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
 const LayoutContent = () => {
   const { isReady, session } = useAuth();
   const router = useRouter();
@@ -27,8 +26,12 @@ const LayoutContent = () => {
     }
 
     const destination = session ? '/(tabs)' : '/login';
-    if (pathname !== destination) {
-      router.replace(destination);
+
+    // Only redirect if we are not in the correct segment
+    if (session && pathname === '/login') {
+      router.replace('/(tabs)');
+    } else if (!session && pathname !== '/login') {
+      router.replace('/login');
     }
   }, [isReady, session, pathname, router]);
 

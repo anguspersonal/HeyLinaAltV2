@@ -24,6 +24,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Chat',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="ellipsis.bubble.fill" color={color} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            console.log('chat button clicked (via listeners)');
+          },
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
