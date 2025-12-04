@@ -1,10 +1,11 @@
 import { Link, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { FormWrapper } from '@/components/form-wrapper';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { FormWrapper } from '@/components/form-wrapper';
+import { colors, componentStyles, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/stores/auth';
 
 export default function LoginScreen() {
@@ -12,7 +13,10 @@ export default function LoginScreen() {
   const { status, error, session, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [attempted, setAttempted] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
   const loading = status === 'loading';
 
@@ -22,13 +26,48 @@ export default function LoginScreen() {
     }
   }, [session, router]);
 
-  const buttonText = useMemo(() => (loading ? 'Signing in…' : 'Sign in'), [loading]);
+  const validateEmail = (emailValue: string): boolean => {
+    const trimmedEmail = emailValue.trim();
+    if (!trimmedEmail) {
+      setValidationErrors(prev => ({ ...prev, email: 'Email is required' }));
+      return false;
+    }
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setValidationErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+      return false;
+    }
+    setValidationErrors(prev => ({ ...prev, email: undefined }));
+    return true;
+  };
+
+  const validatePassword = (passwordValue: string): boolean => {
+    if (!passwordValue) {
+      setValidationErrors(prev => ({ ...prev, password: 'Password is required' }));
+      return false;
+    }
+    if (passwordValue.length < 6) {
+      setValidationErrors(prev => ({ ...prev, password: 'Password must be at least 6 characters' }));
+      return false;
+    }
+    setValidationErrors(prev => ({ ...prev, password: undefined }));
+    return true;
+  };
 
   const handleSubmit = async () => {
     if (loading) {
       return;
     }
-    setAttempted(true);
+
+    // Validate inputs
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+
+    if (!isEmailValid || !isPasswordValid) {
+      return;
+    }
+
     const cleanedEmail = email.trim().toLowerCase();
     const success = await signIn({ email: cleanedEmail, password });
     if (success) {
@@ -36,51 +75,103 @@ export default function LoginScreen() {
     }
   };
 
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    // Clear validation error when user starts typing
+    if (validationErrors.email) {
+      setValidationErrors(prev => ({ ...prev, email: undefined }));
+    }
+  };
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    // Clear validation error when user starts typing
+    if (validationErrors.password) {
+      setValidationErrors(prev => ({ ...prev, password: undefined }));
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        Welcome back
-      </ThemedText>
-      <ThemedText type="default" style={styles.subtitle}>
-        Use your email and password to sign in, or create a new account.
-      </ThemedText>
+      <View style={styles.content}>
+        <ThemedText style={styles.title}>
+          Welcome back
+        </ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Sign in to continue your journey with Lina
+        </ThemedText>
 
-      <FormWrapper style={styles.form} onSubmit={handleSubmit}>
-        <TextInput
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          placeholder="Email"
-          placeholderTextColor="#999"
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          autoCapitalize="none"
-          autoComplete="password"
-          placeholder="Password"
-          placeholderTextColor="#999"
-          secureTextEntry
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
-        {error && attempted ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
-        <Pressable style={styles.button} onPress={handleSubmit} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-              {buttonText}
-            </ThemedText>
+        <FormWrapper style={styles.form} onSubmit={handleSubmit}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              placeholder="Email"
+              placeholderTextColor={colors.text.placeholder}
+              style={[
+                styles.input,
+                validationErrors.email && styles.inputError
+              ]}
+              value={email}
+              onChangeText={handleEmailChange}
+              editable={!loading}
+            />
+            {validationErrors.email && (
+              <ThemedText style={styles.errorText}>{validationErrors.email}</ThemedText>
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              autoCapitalize="none"
+              autoComplete="password"
+              placeholder="Password"
+              placeholderTextColor={colors.text.placeholder}
+              secureTextEntry
+              style={[
+                styles.input,
+                validationErrors.password && styles.inputError
+              ]}
+              value={password}
+              onChangeText={handlePasswordChange}
+              editable={!loading}
+            />
+            {validationErrors.password && (
+              <ThemedText style={styles.errorText}>{validationErrors.password}</ThemedText>
+            )}
+          </View>
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <ThemedText style={styles.errorText}>{error}</ThemedText>
+            </View>
           )}
-        </Pressable>
-      </FormWrapper>
 
-      <Link href="/signup" style={styles.link}>
-        <ThemedText type="link">Need to create an account?</ThemedText>
-      </Link>
+          <Pressable 
+            style={[
+              styles.button,
+              loading && styles.buttonDisabled
+            ]} 
+            onPress={handleSubmit} 
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.text.primary} />
+            ) : (
+              <ThemedText style={styles.buttonText}>
+                Sign in
+              </ThemedText>
+            )}
+          </Pressable>
+        </FormWrapper>
+
+        <Link href="/signup" style={styles.link}>
+          <ThemedText style={styles.linkText}>
+            Need to create an account?
+          </ThemedText>
+        </Link>
+      </View>
     </ThemedView>
   );
 }
@@ -88,46 +179,81 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    justifyContent: 'center',
+    backgroundColor: colors.background.primary,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 80,
+    paddingBottom: spacing.xxl,
   },
   title: {
-    marginBottom: 8,
+    fontSize: typography.heading.h1.fontSize,
+    lineHeight: typography.heading.h1.lineHeight,
+    fontWeight: typography.heading.h1.fontWeight,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    marginBottom: 32,
-    color: '#4A4F5F',
+    fontSize: typography.body.medium.fontSize,
+    lineHeight: typography.body.medium.lineHeight,
+    fontWeight: typography.body.medium.fontWeight,
+    color: colors.text.secondary,
+    marginBottom: spacing.xxxl,
   },
   form: {
-    marginBottom: 8,
+    marginBottom: spacing.lg,
+  },
+  inputContainer: {
+    marginBottom: spacing.lg,
   },
   input: {
+    ...componentStyles.input,
+    fontSize: typography.body.medium.fontSize,
     borderWidth: 1,
-    borderColor: '#D2D6DB',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    backgroundColor: '#F7F7F8',
-    marginBottom: 12,
+    borderColor: colors.ui.border,
+    backgroundColor: colors.background.card, // Override to use card background instead of primary
+  },
+  inputError: {
+    borderColor: colors.accent.bronze,
+  },
+  errorContainer: {
+    marginBottom: spacing.lg,
+  },
+  errorText: {
+    fontSize: typography.body.small.fontSize,
+    color: colors.accent.bronze,
+    marginTop: spacing.xs,
   },
   button: {
-    marginTop: 8,
-    backgroundColor: '#0A7EA4',
-    paddingVertical: 14,
-    borderRadius: 12,
+    ...componentStyles.button.primary,
+    backgroundColor: colors.accent.warmGold,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: spacing.md,
+    ...componentStyles.card.shadowColor && {
+      shadowColor: componentStyles.card.shadowColor,
+      shadowOffset: componentStyles.card.shadowOffset,
+      shadowOpacity: componentStyles.card.shadowOpacity,
+      shadowRadius: componentStyles.card.shadowRadius,
+      elevation: componentStyles.card.elevation,
+    },
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  error: {
-    color: '#C72C41',
-    marginTop: 4,
+    fontSize: typography.body.medium.fontSize,
+    fontWeight: '500',
+    color: colors.background.primary,
   },
   link: {
-    marginTop: 24,
+    marginTop: spacing.xl,
     alignSelf: 'center',
+  },
+  linkText: {
+    fontSize: typography.body.medium.fontSize,
+    color: colors.accent.lightGold,
+    textDecorationLine: 'underline',
   },
 });

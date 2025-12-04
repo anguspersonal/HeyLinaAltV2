@@ -4,6 +4,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => {
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
   const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn(
@@ -21,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         url: supabaseUrl,
         anonKey: supabaseAnonKey,
       },
+      apiBaseUrl,
     },
   } as ExpoConfig;
 };
