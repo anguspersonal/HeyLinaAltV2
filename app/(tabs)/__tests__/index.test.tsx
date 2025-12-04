@@ -25,20 +25,19 @@ describe('DashboardScreen', () => {
     expect(getByText('Test')).toBeTruthy();
   });
 
-  it('should display placeholder sections', () => {
+  it('should display main sections', () => {
     const { getByText } = render(<DashboardScreen />);
     
-    // Check that placeholder sections are present
-    expect(getByText('EHS Score Card')).toBeTruthy();
-    expect(getByText('Daily Quote Card')).toBeTruthy();
+    // Check that main sections are present
     expect(getByText('Score Breakdown')).toBeTruthy();
-    expect(getByText('Clarity Hits')).toBeTruthy();
+    expect(getByText("Today's Clarity Hits")).toBeTruthy();
   });
 
-  it('should display chat input preview placeholder', () => {
+  it('should display chat input preview', () => {
     const { getByText } = render(<DashboardScreen />);
     
     // Check that the chat input preview is present
-    expect(getByText('Chat input preview (task 4.7)')).toBeTruthy();
+    expect(getByText('Message Lina...')).toBeTruthy();
+    expect(getByText('Tap to open chat')).toBeTruthy();
   });
 });
