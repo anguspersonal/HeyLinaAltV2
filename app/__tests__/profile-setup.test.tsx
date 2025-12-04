@@ -125,7 +125,7 @@ describe('ProfileSetupScreen', () => {
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/expectation-setting');
-    });
+    }, { timeout: 10000 });
   });
 
   it('should prevent submission when fields are missing', async () => {

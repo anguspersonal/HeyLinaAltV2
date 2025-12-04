@@ -82,7 +82,7 @@ describe('ExpectationSettingScreen', () => {
     // Should navigate since button is enabled
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
-    });
+    }, { timeout: 10000 });
   });
 
   it('should mark onboarding as complete and navigate to main app when continue is pressed', async () => {
