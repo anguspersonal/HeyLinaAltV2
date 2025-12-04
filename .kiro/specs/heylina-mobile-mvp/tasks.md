@@ -277,22 +277,31 @@
   - Implement navigation to chat screen
   - _Requirements: 3.1_
 
-- [ ] 5. Implement emotional health score features
-- [ ] 5.1 Create scoreApi service
+- [x] 5. Implement emotional health score features
+
+
+
+- [x] 5.1 Create scoreApi service
+
+
   - Implement getCurrentScore endpoint integration
   - Implement getScoreHistory endpoint integration
   - Implement getScoreInsights endpoint integration
   - Add error handling and retry logic
   - _Requirements: 5.1, 5.3, 5.4, 5.5_
 
-- [ ] 5.2 Create useScore custom hook
+- [x] 5.2 Create useScore custom hook
+
+
   - Manage score state and loading
   - Implement data fetching and caching
   - Handle error states
   - Provide refresh functionality
   - _Requirements: 5.1, 5.3_
 
-- [ ] 5.3 Create score detail screen
+- [x] 5.3 Create score detail screen
+
+
   - Build full-screen score view
   - Display large circular visualization
   - Show detailed component breakdown
@@ -300,21 +309,33 @@
   - Implement navigation from dashboard
   - _Requirements: 5.1, 5.4, 5.5_
 
-- [ ] 5.4 Create ScoreGraph component for trends
+- [x] 5.4 Create ScoreGraph component for trends
+
+
   - Build timeline visualization
   - Display data points over time
   - Add time range selector (week/month/all)
   - Handle empty states
   - _Requirements: 5.3_
 
-- [ ] 5.5 Create InsightCard component
+- [x] 5.5 Create InsightCard component
+
+
+
+
+
+
+
   - Display insight text and category
   - Show suggested actions
   - Add bookmark and share actions
   - Style with appropriate color coding
   - _Requirements: 5.5_
 
-- [ ]* 5.6 Write property tests for score functionality
+- [x] 5.6 Write property tests for score functionality
+
+
+
   - **Property 10: Historical data enables trend visualization**
   - **Property 11: Score insights include actionable suggestions**
   - **Validates: Requirements 5.3, 5.5**
