@@ -48,6 +48,7 @@ export function MessageBubble({ message, onRetry, onBookmark, isBookmarked = fal
   const handleBookmark = () => {
     if (onBookmark && message.id) {
       onBookmark(message.id);
+      setShowActions(false); // Close actions after bookmarking
     }
   };
 

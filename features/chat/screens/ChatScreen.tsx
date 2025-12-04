@@ -105,6 +105,10 @@ export default function ChatScreen() {
     clearError,
   } = useMessages({ accessToken: authError ? undefined : session?.access_token });
 
+  const { bookmarkedMessageIds, toggleBookmark } = useBookmarks({
+    accessToken: authError ? undefined : session?.access_token,
+  });
+
 
 
   const handleQueued = useCallback(
@@ -277,6 +281,17 @@ export default function ChatScreen() {
     );
   }
 
+  const handleBookmark = useCallback(
+    async (messageId: string) => {
+      try {
+        await toggleBookmark(messageId);
+      } catch (error) {
+        console.error('Failed to toggle bookmark:', error);
+      }
+    },
+    [toggleBookmark]
+  );
+
   const renderItem = ({ item }: { item: ListItem }) => {
     if (item.type === 'date') {
       return (
@@ -292,6 +307,8 @@ export default function ChatScreen() {
       <MessageBubble
         message={item.data}
         onRetry={item.data.status === 'failed' ? () => handleRetry(item.data) : undefined}
+        onBookmark={handleBookmark}
+        isBookmarked={bookmarkedMessageIds.has(item.data.id)}
       />
     );
   };

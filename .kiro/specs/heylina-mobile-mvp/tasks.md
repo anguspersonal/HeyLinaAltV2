@@ -340,41 +340,65 @@
   - **Property 11: Score insights include actionable suggestions**
   - **Validates: Requirements 5.3, 5.5**
 
-- [ ] 6. Implement conversation history and bookmarks
-- [ ] 6.1 Create history list screen
+- [x] 5.7 Fix peer dependencies, critical severity vulnerabilities and testing failures
+  - There are 2 critical severity vulnerabilities from npm install
+  - Conflicting peer dependencies e.g. jest@29.7.0
+  - npm test -- --watchAll=false
+
+  
+
+- [x] 6. Implement conversation history and bookmarks
+
+
+
+
+
+- [x] 6.1 Create history list screen
+
+
   - Build list of past conversations
   - Sort by recency (most recent first)
   - Display conversation preview and metadata
   - Implement navigation to conversation detail
   - _Requirements: 6.1, 6.2_
 
-- [ ] 6.2 Create conversation detail screen
+- [x] 6.2 Create conversation detail screen
+
+
   - Display full message history for selected conversation
   - Reuse MessageBubble components
   - Add navigation back to history list
   - _Requirements: 6.2_
 
-- [ ] 6.3 Create bookmarks screen
+- [x] 6.3 Create bookmarks screen
+
+
   - Display list of bookmarked messages
   - Show message content with surrounding context
   - Add unbookmark action
   - Implement navigation to full conversation
   - _Requirements: 6.3, 6.4_
 
-- [ ] 6.4 Implement bookmark functionality
+- [x] 6.4 Implement bookmark functionality
+
+
   - Add bookmark action to MessageBubble
   - Persist bookmarks locally and to backend
   - Update UI optimistically
   - _Requirements: 6.3_
 
-- [ ] 6.5 Implement conversation search
+- [x] 6.5 Implement conversation search
+
   - Add search input to history screen
   - Filter conversations by search query
   - Highlight matching text
   - Handle empty search results
   - _Requirements: 6.5_
 
-- [ ]* 6.6 Write property tests for history and bookmarks
+- [x] 6.6 Write property tests for history and bookmarks
+
+
+
   - **Property 12: Chat sessions are ordered by recency**
   - **Property 13: Session selection displays full conversation**
   - **Property 14: Bookmark round-trip preserves messages**
@@ -417,7 +441,8 @@
   - Implement deleteAccount endpoint integration
   - _Requirements: 9.1, 9.2, 9.3, 9.4_
 
-- [ ]* 7.6 Write property tests for settings functionality
+- [ ] 7.6 Write property tests for settings functionality
+
   - **Property 5: User preferences persist across sessions** (already covered in 2.7)
   - **Property 19: Logout clears authentication state**
   - **Validates: Requirements 7.4, 9.2, 9.5**
