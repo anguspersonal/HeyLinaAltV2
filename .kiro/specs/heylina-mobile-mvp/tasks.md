@@ -405,35 +405,52 @@
   - **Property 15: Search returns matching conversations**
   - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5**
 
-- [ ] 7. Implement settings and user profile management
-- [ ] 7.1 Create settings screen
+- [x] 7. Implement settings and user profile management
+
+
+
+
+
+
+
+- [x] 7.1 Create settings screen
+
+
   - Build settings list with sections
   - Add navigation to profile, notifications, data privacy
   - Add logout action
   - Style according to design system
   - _Requirements: 9.1_
 
-- [ ] 7.2 Create profile edit screen
+- [x] 7.2 Create profile edit screen
+
+
   - Build form for updating user information
   - Implement validation
   - Add save functionality
   - Show success/error feedback
   - _Requirements: 9.2_
 
-- [ ] 7.3 Create notification settings screen
+- [x] 7.3 Create notification settings screen
+
+
   - Build toggles for notification preferences
   - Add time picker for check-in schedule
   - Implement save functionality
   - _Requirements: 7.4_
 
-- [ ] 7.4 Create data privacy screen
+- [x] 7.4 Create data privacy screen
+
+
   - Add data export request button
   - Add account deletion button with confirmation
   - Display privacy policy and terms
   - Add safety resources section
   - _Requirements: 9.3, 9.4, 10.3_
 
-- [ ] 7.5 Create userApi service
+- [x] 7.5 Create userApi service
+
+
   - Implement getProfile endpoint integration
   - Implement updateProfile endpoint integration
   - Implement updateNotificationSettings endpoint integration
@@ -441,7 +458,11 @@
   - Implement deleteAccount endpoint integration
   - _Requirements: 9.1, 9.2, 9.3, 9.4_
 
-- [ ] 7.6 Write property tests for settings functionality
+- [x] 7.6 Write property tests for settings functionality
+
+
+
+
 
   - **Property 5: User preferences persist across sessions** (already covered in 2.7)
   - **Property 19: Logout clears authentication state**
