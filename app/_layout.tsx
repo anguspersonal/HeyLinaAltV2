@@ -20,6 +20,9 @@ const LayoutContent = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [hasSeenWelcome, setHasSeenWelcome] = useState<boolean | null>(null);
+  
+  // Set up notification handlers
+  useNotificationHandler();
 
   // Check if user has seen welcome screen
   useEffect(() => {
@@ -35,6 +38,22 @@ const LayoutContent = () => {
     };
     checkWelcomeStatus();
   }, []);
+
+  // Clear badge count when app is opened
+  useEffect(() => {
+    const clearBadgeOnOpen = async () => {
+      try {
+        const { setBadgeCount } = await import('@/services/notifications');
+        await setBadgeCount(0);
+      } catch (error) {
+        console.error('Error clearing badge count:', error);
+      }
+    };
+    
+    if (isReady && session) {
+      clearBadgeOnOpen();
+    }
+  }, [isReady, session]);
 
   useEffect(() => {
     if (!isReady || hasSeenWelcome === null) {

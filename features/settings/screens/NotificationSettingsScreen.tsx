@@ -1,4 +1,5 @@
 import { borderRadius, colors, componentStyles, spacing, typography } from '@/constants/theme';
+import { useNotificationPermissions } from '@/hooks/useNotificationPermissions';
 import { useAuth } from '@/stores/auth';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -7,13 +8,14 @@ import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Linking,
     Platform,
     ScrollView,
     StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { getNotificationSettings, updateNotificationSettings } from '../services/userApi';
 import type { NotificationSettings } from '../types';
@@ -30,6 +32,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function NotificationSettingsScreen() {
   const { session } = useAuth();
+  const { hasPermissions, isRequesting, requestPermissions } = useNotificationPermissions();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -64,12 +67,62 @@ export function NotificationSettingsScreen() {
     }
   };
 
+  const handleEnableNotifications = async (value: boolean) => {
+    if (value && !hasPermissions) {
+      // Request permissions when enabling notifications
+      const granted = await requestPermissions();
+      
+      if (!granted) {
+        // Show alert explaining how to enable permissions
+        Alert.alert(
+          'Notification Permission Required',
+          'To receive check-in reminders and updates from Lina, please enable notifications in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Open Settings', 
+              onPress: () => {
+                if (Platform.OS === 'ios') {
+                  Linking.openURL('app-settings:');
+                } else {
+                  Linking.openSettings();
+                }
+              }
+            },
+          ]
+        );
+        return;
+      }
+    }
+    
+    setSettings({ ...settings, enabled: value });
+  };
+
   const handleSave = async () => {
     if (!session?.access_token) return;
 
+    // Check if notifications are enabled but permissions not granted
+    if (settings.enabled && !hasPermissions) {
+      Alert.alert(
+        'Permission Required',
+        'Notification permissions are required to enable notifications. Please grant permissions first.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       setIsSaving(true);
+      
+      // Save settings to backend
       await updateNotificationSettings(settings, session.access_token);
+      
+      // Schedule notifications based on settings
+      if (settings.enabled && hasPermissions) {
+        await scheduleCheckInNotifications(settings);
+        await scheduleWeeklyReflection(settings.weeklyReflections);
+      }
+      
       Alert.alert('Success', 'Notification settings updated!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
@@ -137,6 +190,18 @@ export function NotificationSettingsScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {!hasPermissions && (
+          <View style={styles.permissionBanner}>
+            <Ionicons name="notifications-off-outline" size={24} color={colors.accent.gold} />
+            <View style={styles.permissionBannerText}>
+              <Text style={styles.permissionBannerTitle}>Notifications Disabled</Text>
+              <Text style={styles.permissionBannerDescription}>
+                Enable notifications to receive check-ins and updates from Lina
+              </Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.section}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
@@ -147,9 +212,10 @@ export function NotificationSettingsScreen() {
             </View>
             <Switch
               value={settings.enabled}
-              onValueChange={(value) => setSettings({ ...settings, enabled: value })}
+              onValueChange={handleEnableNotifications}
               trackColor={{ false: colors.ui.border, true: colors.accent.gold }}
               thumbColor={colors.text.primary}
+              disabled={isRequesting}
             />
           </View>
         </View>
@@ -491,5 +557,30 @@ const styles = StyleSheet.create({
     ...typography.body.medium,
     color: colors.text.primary,
     fontWeight: '600',
+  },
+  permissionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.accent.gold,
+  },
+  permissionBannerText: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  permissionBannerTitle: {
+    ...typography.body.medium,
+    color: colors.text.primary,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  permissionBannerDescription: {
+    ...typography.body.small,
+    color: colors.text.secondary,
+    lineHeight: 18,
   },
 });

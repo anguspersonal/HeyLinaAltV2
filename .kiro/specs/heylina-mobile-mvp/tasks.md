@@ -468,26 +468,38 @@
   - **Property 19: Logout clears authentication state**
   - **Validates: Requirements 7.4, 9.2, 9.5**
 
-- [ ] 8. Implement notifications and check-ins
-- [ ] 8.1 Set up notification permissions and configuration
+- [x] 8. Implement notifications and check-ins
+
+
+
+
+
+- [x] 8.1 Set up notification permissions and configuration
+
   - Request notification permissions at appropriate time
   - Handle permission denied gracefully
   - Configure notification channels (iOS/Android)
   - _Requirements: 7.1_
 
-- [ ] 8.2 Implement notification scheduling
+- [x] 8.2 Implement notification scheduling
+
+
   - Schedule check-in notifications based on user preferences
   - Handle notification taps with deep linking
   - Update schedule when preferences change
   - _Requirements: 7.1, 7.2, 7.4_
 
-- [ ] 8.3 Implement notification handlers
+
+- [x] 8.3 Implement notification handlers
+
   - Handle notification tap to open chat with context
   - Handle notification dismissal
   - Update notification badge counts
   - _Requirements: 7.2_
 
-- [ ] 8.4 Write property test for notification navigation
+
+- [x] 8.4 Write property test for notification navigation
+
 
   - **Property 16: Notification taps navigate with context**
   - **Validates: Requirements 7.2**

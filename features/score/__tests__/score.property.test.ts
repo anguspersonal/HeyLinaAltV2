@@ -165,7 +165,9 @@ describe('Score Property-Based Tests', () => {
             fc.constant([]), // No data
             fc.array(
               fc.record({
-                date: fc.date().map((d) => d.toISOString()),
+                date: fc
+                  .integer({ min: Date.parse('2024-01-01'), max: Date.now() })
+                  .map((ts) => new Date(ts).toISOString()),
                 score: fc.integer({ min: 0, max: 1000 }),
               }),
               { minLength: 0, maxLength: 1 } // 0 or 1 data point
@@ -543,7 +545,9 @@ describe('Score Property-Based Tests', () => {
               emotionalRegulation: fc.integer({ min: 0, max: 100 }),
             }),
             interpretation: fc.string({ minLength: 20, maxLength: 300 }),
-            lastUpdated: fc.date().map((d) => d.toISOString()),
+            lastUpdated: fc
+              .integer({ min: Date.parse('2024-01-01'), max: Date.now() })
+              .map((ts) => new Date(ts).toISOString()),
           }),
           fc.uuid(),
           async (scoreData, accessToken) => {
@@ -579,7 +583,9 @@ describe('Score Property-Based Tests', () => {
               emotionalRegulation: fc.integer({ min: 0, max: 100 }),
             }),
             interpretation: fc.string({ minLength: 20, maxLength: 300 }),
-            lastUpdated: fc.date().map((d) => d.toISOString()),
+            lastUpdated: fc
+              .integer({ min: Date.parse('2024-01-01'), max: Date.now() })
+              .map((ts) => new Date(ts).toISOString()),
           }),
           fc.uuid(),
           async (originalScore, accessToken) => {
@@ -619,7 +625,9 @@ describe('Score Property-Based Tests', () => {
               emotionalRegulation: fc.integer({ min: 0, max: 100 }),
             }),
             interpretation: fc.string({ minLength: 20, maxLength: 300 }),
-            lastUpdated: fc.date().map((d) => d.toISOString()),
+            lastUpdated: fc
+              .integer({ min: Date.parse('2024-01-01'), max: Date.now() })
+              .map((ts) => new Date(ts).toISOString()),
           }),
           fc.uuid(),
           async (scoreData, accessToken) => {
