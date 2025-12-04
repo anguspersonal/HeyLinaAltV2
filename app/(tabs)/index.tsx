@@ -1,6 +1,11 @@
+import { ChatInputPreview } from '@/components/ChatInputPreview';
 import { PersonalizedHeader } from '@/components/PersonalizedHeader';
-import { ThemedText } from '@/components/themed-text';
 import { colors, spacing, typography } from '@/constants/theme';
+import { ClarityHits } from '@/features/score/components/ClarityHits';
+import { DailyQuoteCard } from '@/features/score/components/DailyQuoteCard';
+import { ScoreBreakdown } from '@/features/score/components/ScoreBreakdown';
+import { ScoreCard } from '@/features/score/components/ScoreCard';
+import { EmotionalHealthScore } from '@/features/score/types';
 import { useAuth } from '@/stores/auth';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -19,6 +24,21 @@ export default function DashboardScreen() {
   const userName = user?.email?.split('@')[0] || 'there';
   const displayName = userName.charAt(0).toUpperCase() + userName.slice(1);
 
+  // Mock score data for demonstration
+  // In production, this would come from an API call
+  const mockScore: EmotionalHealthScore = {
+    overall: 720,
+    components: {
+      selfAwareness: 78,
+      boundaries: 65,
+      communication: 82,
+      attachmentSecurity: 71,
+      emotionalRegulation: 68,
+    },
+    interpretation: "You're showing strong emotional awareness and communication skills. Focus on strengthening your boundaries to feel more secure in relationships.",
+    lastUpdated: new Date().toISOString(),
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -32,47 +52,19 @@ export default function DashboardScreen() {
         {/* Personalized Header Component */}
         <PersonalizedHeader userName={displayName} />
 
-        {/* Content Sections - Placeholders for future components */}
+        {/* Content Sections */}
         <View style={styles.contentSections}>
-          {/* EHS Score Card Placeholder */}
-          <View style={styles.sectionPlaceholder}>
-            <ThemedText style={styles.placeholderText}>
-              EHS Score Card
-            </ThemedText>
-            <ThemedText style={styles.placeholderSubtext}>
-              Coming in task 4.3
-            </ThemedText>
-          </View>
+          {/* EHS Score Card */}
+          <ScoreCard score={mockScore} />
 
-          {/* Daily Quote Card Placeholder */}
-          <View style={styles.sectionPlaceholder}>
-            <ThemedText style={styles.placeholderText}>
-              Daily Quote Card
-            </ThemedText>
-            <ThemedText style={styles.placeholderSubtext}>
-              Coming in task 4.5
-            </ThemedText>
-          </View>
+          {/* Daily Quote Card */}
+          <DailyQuoteCard />
 
-          {/* Score Breakdown Placeholder */}
-          <View style={styles.sectionPlaceholder}>
-            <ThemedText style={styles.placeholderText}>
-              Score Breakdown
-            </ThemedText>
-            <ThemedText style={styles.placeholderSubtext}>
-              Coming in task 4.4
-            </ThemedText>
-          </View>
+          {/* Score Breakdown */}
+          <ScoreBreakdown score={mockScore} />
 
-          {/* Clarity Hits Placeholder */}
-          <View style={styles.sectionPlaceholder}>
-            <ThemedText style={styles.placeholderText}>
-              Clarity Hits
-            </ThemedText>
-            <ThemedText style={styles.placeholderSubtext}>
-              Coming in task 4.6
-            </ThemedText>
-          </View>
+          {/* Clarity Hits */}
+          <ClarityHits />
 
           {/* Add spacing at bottom for fade gradient */}
           <View style={styles.bottomSpacing} />
@@ -83,13 +75,11 @@ export default function DashboardScreen() {
       <LinearGradient
         colors={['rgba(9, 7, 10, 0)', '#09070A']}
         style={styles.bottomFade}
-        pointerEvents="none"
+        pointerEvents="box-none"
       >
-        {/* Chat Input Preview Placeholder */}
-        <View style={styles.chatInputPreview}>
-          <ThemedText style={styles.chatInputText}>
-            Chat input preview (task 4.7)
-          </ThemedText>
+        {/* Chat Input Preview */}
+        <View style={styles.chatInputPreviewContainer}>
+          <ChatInputPreview />
         </View>
       </LinearGradient>
     </View>
@@ -155,21 +145,8 @@ const styles = StyleSheet.create({
   },
   
   // Chat Input Preview
-  chatInputPreview: {
+  chatInputPreviewContainer: {
     marginHorizontal: spacing.xl,
     marginBottom: spacing.lg,
-    backgroundColor: colors.background.card,
-    borderRadius: 6,
-    padding: spacing.lg,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 7.3,
-    elevation: 5,
-  },
-  chatInputText: {
-    fontSize: typography.body.small.fontSize,
-    color: colors.text.tertiary,
   },
 });

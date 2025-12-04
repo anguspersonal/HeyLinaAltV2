@@ -205,7 +205,11 @@
   - **Property 9: Active typing hides quick actions**
   - **Validates: Requirements 3.2, 3.3, 3.4, 4.2, 4.4**
 
-- [ ] 4. Build dashboard/home screen
+- [x] 4. Build dashboard/home screen
+
+
+
+
 - [x] 4.1 Create dashboard screen layout
 
 
@@ -228,7 +232,9 @@
   - Implement gradient overlay effects
   - _Requirements: All (personalization)_
 
-- [ ] 4.3 Create EHS score card component
+- [x] 4.3 Create EHS score card component
+
+
   - Build large circular score visualization with conic gradient
   - Display score value (0-1000 scale)
   - Show interpretation text
@@ -236,28 +242,36 @@
   - Implement horizontal scrolling quick actions at bottom
   - _Requirements: 5.1, 5.2_
 
-- [ ] 4.4 Create score breakdown section
+- [x] 4.4 Create score breakdown section
+
+
   - Build horizontal scrolling component bars
   - Display individual dimension scores with color coding
   - Show dimension labels
   - Handle empty/loading states
   - _Requirements: 5.4, 5.5_
 
-- [ ] 4.5 Create daily quote card component
+- [x] 4.5 Create daily quote card component
+
+
   - Display quote text with proper typography
   - Add share button
   - Implement pagination dots for multiple quotes
   - Style with gradient background
   - _Requirements: General UX_
 
-- [ ] 4.6 Create clarity hits section
+- [x] 4.6 Create clarity hits section
+
+
   - Build horizontal scrolling insight cards
   - Display circular images with glow effect
   - Show insight titles and categories
   - Add bookmark and like actions
   - _Requirements: 6.1, 6.3_
 
-- [ ] 4.7 Create bottom chat input preview
+- [x] 4.7 Create bottom chat input preview
+
+
   - Build fixed bottom input with glow effect
   - Add "Swipe to open chat" hint
   - Implement navigation to chat screen
