@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { colors, spacing, typography } from '@/constants/theme';
 
 const createDotAnimation = (value: Animated.Value, delay: number) =>
   Animated.loop(
@@ -45,31 +46,31 @@ export function TypingIndicator() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#11213A',
+    backgroundColor: colors.background.cardSecondary,
     borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
   label: {
-    color: '#E7EEF7',
-    fontSize: 13,
+    color: colors.text.secondary,
+    ...typography.body.small,
   },
   dots: {
     flexDirection: 'row',
-    gap: 6,
+    gap: spacing.xs,
   },
   dot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#E7EEF7',
+    backgroundColor: colors.accent.gold,
   },
 });

@@ -1,16 +1,16 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Asset } from 'expo-asset';
-import { useFonts } from 'expo-font';
 import { Stack, usePathname, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet } from 'react-native';
 import 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FONT_FILES, useAppFonts } from '@/hooks/useFonts';
 import { AuthProvider, useAuth } from '@/stores/auth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -19,21 +19,68 @@ const LayoutContent = () => {
   const { isReady, session } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [hasSeenWelcome, setHasSeenWelcome] = useState<boolean | null>(null);
+
+  // Check if user has seen welcome screen
+  useEffect(() => {
+    const checkWelcomeStatus = async () => {
+      try {
+        const { getItem } = await import('expo-secure-store');
+        const seen = await getItem('hasSeenWelcome');
+        setHasSeenWelcome(seen === 'true');
+      } catch (error) {
+        // If we can't check, assume they haven't seen it
+        setHasSeenWelcome(false);
+      }
+    };
+    checkWelcomeStatus();
+  }, []);
 
   useEffect(() => {
-    if (!isReady) {
+    if (!isReady || hasSeenWelcome === null) {
       return;
     }
 
-    const destination = session ? '/(tabs)' : '/login';
-
-    // Only redirect if we are not in the correct segment
-    if (session && pathname === '/login') {
-      router.replace('/(tabs)');
-    } else if (!session && pathname !== '/login') {
-      router.replace('/login');
+    // If user hasn't seen welcome and is not authenticated, show welcome
+    if (!hasSeenWelcome && !session && pathname !== '/welcome' && pathname !== '/signup' && pathname !== '/login') {
+      router.replace('/welcome' as any);
+      return;
     }
-  }, [isReady, session, pathname, router]);
+
+    // If user is authenticated and on auth screens, check if onboarding is complete
+    if (session && (pathname === '/login' || pathname === '/signup' || pathname === '/welcome')) {
+      // Check if onboarding is complete
+      const checkOnboarding = async () => {
+        try {
+          const { getItem } = await import('expo-secure-store');
+          const onboardingComplete = await getItem('onboardingCompleted');
+          
+          if (onboardingComplete === 'true') {
+            router.replace('/(tabs)' as any);
+          } else {
+            // Check if profile setup is complete
+            const profileData = await getItem('profileData');
+            if (profileData) {
+              router.replace('/expectation-setting' as any);
+            } else {
+              router.replace('/profile-setup' as any);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to check onboarding status:', error);
+          router.replace('/profile-setup' as any);
+        }
+      };
+      checkOnboarding();
+      return;
+    }
+
+    // If user is not authenticated and has seen welcome, go to login
+    if (!session && hasSeenWelcome && pathname !== '/login' && pathname !== '/signup') {
+      router.replace('/login');
+      return;
+    }
+  }, [isReady, session, pathname, router, hasSeenWelcome]);
 
   if (!isReady) {
     return (
@@ -46,25 +93,29 @@ const LayoutContent = () => {
 
   return (
     <Stack>
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="signup" options={{ headerShown: false }} />
+      <Stack.Screen name="profile-setup" options={{ headerShown: false }} />
+      <Stack.Screen name="expectation-setting" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
   );
 };
 
-const FONT_FILES = {
-  Inter: require('../assets/fonts/Inter/Inter_18pt-Regular.ttf'),
-  Montserrat: require('../assets/fonts/Montserrat/Montserrat-Regular.ttf'),
-  MontserratAlternates: require('../assets/fonts/Montserrat_Alternates/MontserratAlternates-Regular.ttf'),
-} as const;
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts(Platform.OS === 'web' ? {} : FONT_FILES);
+  const { loaded, error } = useAppFonts();
 
   useWebFontFaces(FONT_FILES);
+
+  // Log font loading errors for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('Font loading error:', error);
+    }
+  }, [error]);
 
   useEffect(() => {
     if (loaded) {

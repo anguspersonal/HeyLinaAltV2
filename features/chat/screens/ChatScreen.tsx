@@ -1,18 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  StyleSheet,
-  View
+    ActivityIndicator,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    RefreshControl,
+    StyleSheet,
+    View
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { colors, spacing, typography } from '@/constants/theme';
 import { ChatInput } from '@/features/chat/components/ChatInput';
 import { MessageBubble } from '@/features/chat/components/MessageBubble';
+import { QuickActions, type QuickAction } from '@/features/chat/components/QuickActions';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { useMessages } from '@/features/chat/hooks/useMessages';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
@@ -24,6 +26,57 @@ const keyboardOffset = Platform.select({
   android: 64,
   default: 0,
 });
+
+// Helper to format date for separators
+const formatDateSeparator = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Recent';
+    }
+    
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Reset time parts for comparison
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+
+    if (dateOnly.getTime() === todayOnly.getTime()) {
+      return 'Today';
+    } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
+      return 'Yesterday';
+    } else {
+      // Format as "Monday, January 15, 2025"
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+  } catch {
+    return 'Recent';
+  }
+};
+
+// Helper to check if two dates are on different days
+const isDifferentDay = (date1: string, date2: string): boolean => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return d1.getDate() !== d2.getDate() || 
+         d1.getMonth() !== d2.getMonth() || 
+         d1.getFullYear() !== d2.getFullYear();
+};
+
+// Type for list items (messages or date separators)
+type ListItem = 
+  | { type: 'message'; data: ChatMessage }
+  | { type: 'date'; data: string };
 
 export default function ChatScreen() {
   let session, user;
@@ -37,7 +90,9 @@ export default function ChatScreen() {
     authError = error;
   }
 
-  const flatListRef = useRef<FlatList<ChatMessage>>(null);
+  const flatListRef = useRef<FlatList<ListItem>>(null);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   const {
     messages,
@@ -122,9 +177,17 @@ export default function ChatScreen() {
   const handleSend = useCallback(
     (text: string) => {
       clearError();
+      setInputValue('');
       return sendMessage({ content: text });
     },
     [clearError, sendMessage]
+  );
+
+  const handleQuickAction = useCallback(
+    (action: QuickAction) => {
+      handleSend(action.prompt);
+    },
+    [handleSend]
   );
 
   const handleRetry = useCallback(
@@ -134,11 +197,33 @@ export default function ChatScreen() {
     [sendMessage]
   );
 
+  // Create list items with date separators
+  const listItems = useMemo((): ListItem[] => {
+    const items: ListItem[] = [];
+    
+    messages.forEach((message, index) => {
+      // Add date separator if this is the first message or if the date changed
+      if (index === 0 || isDifferentDay(messages[index - 1].createdAt, message.createdAt)) {
+        items.push({ type: 'date', data: message.createdAt });
+      }
+      items.push({ type: 'message', data: message });
+    });
+    
+    return items;
+  }, [messages]);
+
   useEffect(() => {
-    if (!loading) {
+    if (!loading && messages.length > 0) {
       requestAnimationFrame(() => flatListRef.current?.scrollToEnd({ animated: false }));
     }
-  }, [loading, messages]);
+  }, [loading, messages.length]);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messages.length > 0) {
+      requestAnimationFrame(() => flatListRef.current?.scrollToEnd({ animated: true }));
+    }
+  }, [messages.length]);
 
   const listFooter = useMemo(() => {
     if (isAwaitingResponse) {
@@ -192,12 +277,31 @@ export default function ChatScreen() {
     );
   }
 
-  const renderItem = ({ item }: { item: ChatMessage }) => (
-    <MessageBubble
-      message={item}
-      onRetry={item.status === 'failed' ? () => handleRetry(item) : undefined}
-    />
-  );
+  const renderItem = ({ item }: { item: ListItem }) => {
+    if (item.type === 'date') {
+      return (
+        <View style={styles.dateSeparator}>
+          <ThemedText style={styles.dateSeparatorText}>
+            {formatDateSeparator(item.data)}
+          </ThemedText>
+        </View>
+      );
+    }
+    
+    return (
+      <MessageBubble
+        message={item.data}
+        onRetry={item.data.status === 'failed' ? () => handleRetry(item.data) : undefined}
+      />
+    );
+  };
+
+  const getItemKey = (item: ListItem, index: number) => {
+    if (item.type === 'date') {
+      return `date-${item.data}-${index}`;
+    }
+    return item.data.id ?? item.data.localId ?? `${item.data.createdAt}-${index}`;
+  };
 
   return (
     <View style={styles.safeArea}>
@@ -218,12 +322,21 @@ export default function ChatScreen() {
 
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={listItems}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id ?? item.localId ?? item.createdAt}
+            keyExtractor={getItemKey}
             contentContainerStyle={styles.listContent}
+            initialNumToRender={20}
+            maxToRenderPerBatch={10}
+            windowSize={21}
+            removeClippedSubviews={true}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#0A7EA4" />
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={refresh} 
+                tintColor={colors.accent.gold}
+                colors={[colors.accent.gold]}
+              />
             }
             ListEmptyComponent={
               <View style={styles.emptyState}>
@@ -239,11 +352,18 @@ export default function ChatScreen() {
           />
         </ThemedView>
 
+        <QuickActions
+          onSelect={handleQuickAction}
+          visible={!inputFocused && !isSending && inputValue.trim().length === 0}
+        />
+
         <ChatInput
           onSend={handleSend}
           isSending={isSending}
           disabled={isAwaitingResponse}
           lastError={lastError}
+          onFocusChange={setInputFocused}
+          onValueChange={setInputValue}
         />
       </KeyboardAvoidingView>
     </View>
@@ -253,70 +373,83 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B1226',
+    backgroundColor: colors.background.primary,
   },
   container: {
     flex: 1,
-    backgroundColor: '#0B1226',
+    backgroundColor: colors.background.primary,
   },
   flex: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 10,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#122443',
+    borderBottomColor: colors.ui.border,
   },
   title: {
-    color: '#E2E8F0',
+    color: colors.text.primary,
+    ...typography.heading.h1,
   },
   subtitle: {
-    color: '#8EA5C5',
-    marginTop: 6,
-    fontSize: 14,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
+    ...typography.body.small,
   },
   listContent: {
-    paddingHorizontal: 4,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
     flexGrow: 1,
   },
+  dateSeparator: {
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+  },
+  dateSeparatorText: {
+    color: colors.text.tertiary,
+    ...typography.body.tiny,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   footerSpacer: {
-    height: 24,
+    height: spacing.xl,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: spacing.xl,
   },
   loaderText: {
-    marginTop: 12,
+    marginTop: spacing.md,
+    color: colors.text.secondary,
   },
   errorTitle: {
-    marginBottom: 8,
+    marginBottom: spacing.sm,
+    color: colors.text.primary,
   },
   errorSubtitle: {
     textAlign: 'center',
-    color: '#8EA5C5',
+    color: colors.text.secondary,
   },
   errorActions: {
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
   retryLink: {
-    color: '#0A7EA4',
+    color: colors.accent.gold,
   },
   emptyState: {
-    padding: 24,
+    padding: spacing.xl,
     alignItems: 'center',
   },
   emptyTitle: {
-    marginBottom: 8,
-    color: '#E2E8F0',
+    marginBottom: spacing.sm,
+    color: colors.text.primary,
   },
   emptyBody: {
-    color: '#8EA5C5',
+    color: colors.text.secondary,
     textAlign: 'center',
   },
 });

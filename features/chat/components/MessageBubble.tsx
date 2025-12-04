@@ -1,26 +1,36 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
+import { borderRadius, colors, spacing, typography } from '@/constants/theme';
 import type { ChatMessage } from '@/features/chat/types';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 type MessageBubbleProps = {
   message: ChatMessage;
   onRetry?: () => void;
+  onBookmark?: (messageId: string) => void;
+  isBookmarked?: boolean;
 };
 
 const formatTime = (timestamp: string) => {
-  const date = new Date(timestamp);
-  return `${date.getHours().toString().padStart(2, '0')}:${date
-    .getMinutes()
-    .toString()
-    .padStart(2, '0')}`;
+  try {
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return '--:--';
+    }
+    return `${date.getHours().toString().padStart(2, '0')}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`;
+  } catch {
+    return '--:--';
+  }
 };
 
-export function MessageBubble({ message, onRetry }: MessageBubbleProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+export function MessageBubble({ message, onRetry, onBookmark, isBookmarked = false }: MessageBubbleProps) {
+  const [showActions, setShowActions] = useState(false);
   const isUser = message.role === 'user';
+  const isLina = message.role === 'assistant';
   const status = message.status ?? 'sent';
 
   const containerStyle = [
@@ -35,12 +45,30 @@ export function MessageBubble({ message, onRetry }: MessageBubbleProps) {
 
   const statusText = status === 'pending' ? 'Sending...' : status === 'failed' ? 'Failed' : undefined;
 
+  const handleBookmark = () => {
+    if (onBookmark && message.id) {
+      onBookmark(message.id);
+    }
+  };
+
+  const handleLongPress = () => {
+    if (isLina && onBookmark) {
+      setShowActions(!showActions);
+    }
+  };
+
   return (
     <View style={containerStyle}>
-      <View style={bubbleStyle}>
-        <ThemedText style={styles.content}>{message.content}</ThemedText>
+      <Pressable 
+        style={bubbleStyle}
+        onLongPress={handleLongPress}
+        delayLongPress={300}
+      >
+        <ThemedText style={[styles.content, isUser && styles.userContent]}>
+          {message.content}
+        </ThemedText>
         <View style={styles.metaRow}>
-          <ThemedText style={[styles.time, { color: Colors[colorScheme].powderBlue }]}>
+          <ThemedText style={styles.time}>
             {formatTime(message.createdAt)}
           </ThemedText>
           {statusText ? (
@@ -54,7 +82,16 @@ export function MessageBubble({ message, onRetry }: MessageBubbleProps) {
             </Pressable>
           ) : null}
         </View>
-      </View>
+        {showActions && isLina && onBookmark && (
+          <View style={styles.actions}>
+            <Pressable style={styles.actionButton} onPress={handleBookmark}>
+              <ThemedText style={styles.actionText}>
+                {isBookmarked ? '★ Bookmarked' : '☆ Bookmark'}
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
+      </Pressable>
     </View>
   );
 }
@@ -62,8 +99,8 @@ export function MessageBubble({ message, onRetry }: MessageBubbleProps) {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: 12,
-    paddingHorizontal: 8,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
   userContainer: {
     alignItems: 'flex-end',
@@ -72,53 +109,73 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bubble: {
-    padding: 14,
-    borderRadius: 16,
-    maxWidth: '88%',
-    shadowColor: '#0D1B2A',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    maxWidth: '80%',
+    shadowColor: colors.ui.shadow,
+    shadowOpacity: 0.5,
+    shadowRadius: 7.3,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
   },
   userBubble: {
-    backgroundColor: '#0A7EA4',
+    // Golden gradient background (using warmGold as base)
+    backgroundColor: colors.accent.warmGold,
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
-    backgroundColor: '#172A4D',
+    backgroundColor: colors.background.cardSecondary,
     borderBottomLeftRadius: 4,
   },
   failedBubble: {
     borderWidth: 1,
     borderColor: '#C72C41',
+    opacity: 0.7,
   },
   content: {
-    color: '#F8FAFC',
-    fontSize: 15,
-    lineHeight: 22,
+    color: colors.text.primary,
+    ...typography.body.medium,
+    lineHeight: typography.body.medium.lineHeight * 1.4,
+  },
+  userContent: {
+    color: colors.background.primary, // Dark text on golden background
   },
   metaRow: {
-    marginTop: 6,
+    marginTop: spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   time: {
-    fontSize: 12,
+    ...typography.body.tiny,
+    color: colors.text.tertiary,
   },
   statusPill: {
     backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: 10,
   },
   statusText: {
-    color: '#F8FAFC',
-    fontSize: 12,
+    color: colors.text.primary,
+    ...typography.body.tiny,
   },
   retry: {
-    fontSize: 12,
-    color: '#FFD166',
+    ...typography.body.tiny,
+    color: colors.accent.yellow,
+    fontWeight: '600',
+  },
+  actions: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.ui.border,
+  },
+  actionButton: {
+    paddingVertical: spacing.xs,
+  },
+  actionText: {
+    ...typography.body.small,
+    color: colors.accent.gold,
   },
 });

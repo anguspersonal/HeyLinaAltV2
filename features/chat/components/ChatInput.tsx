@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { borderRadius, colors, layout, spacing, typography } from '@/constants/theme';
 
 type ChatInputProps = {
   onSend: (text: string) => void | Promise<void>;
@@ -9,9 +10,11 @@ type ChatInputProps = {
   disabled?: boolean;
   lastError?: string | null;
   maxLength?: number;
+  onFocusChange?: (focused: boolean) => void;
+  onValueChange?: (value: string) => void;
 };
 
-const DEFAULT_MAX_LENGTH = 1000;
+const DEFAULT_MAX_LENGTH = 2000;
 
 export function ChatInput({
   onSend,
@@ -19,11 +22,18 @@ export function ChatInput({
   disabled = false,
   lastError,
   maxLength = DEFAULT_MAX_LENGTH,
+  onFocusChange,
+  onValueChange,
 }: ChatInputProps) {
   const [value, setValue] = useState('');
 
   const trimmed = value.trim();
   const canSend = trimmed.length > 0 && !isSending && !disabled;
+
+  const handleChangeText = (text: string) => {
+    setValue(text);
+    onValueChange?.(text);
+  };
 
   const handleSend = () => {
     if (!canSend) {
@@ -31,30 +41,48 @@ export function ChatInput({
     }
     onSend(trimmed);
     setValue('');
+    onValueChange?.('');
   };
 
   return (
     <View style={styles.container}>
+      {/* Glow effect background */}
+      <View style={styles.glowContainer}>
+        <View style={styles.glow} />
+      </View>
+      
       <View style={styles.inputRow}>
+        {/* Microphone icon placeholder - voice input not implemented yet */}
+        <Pressable style={styles.micButton} disabled>
+          <ThemedText style={styles.micIcon}>🎤</ThemedText>
+        </Pressable>
+        
         <TextInput
           multiline
-          placeholder="Type a message to Lina"
-          placeholderTextColor="#94A3B8"
+          placeholder="Message Lina..."
+          placeholderTextColor={colors.text.placeholder}
           style={styles.input}
           value={value}
-          onChangeText={setValue}
+          onChangeText={handleChangeText}
           maxLength={maxLength}
           onSubmitEditing={handleSend}
           blurOnSubmit={false}
+          editable={!disabled && !isSending}
+          onFocus={() => onFocusChange?.(true)}
+          onBlur={() => onFocusChange?.(false)}
         />
+        
         <Pressable
-          style={[styles.sendButton, !canSend ? styles.sendButtonDisabled : null]}
+          style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
           onPress={handleSend}
           disabled={!canSend}
         >
-          <ThemedText style={styles.sendText}>{isSending ? '...' : 'Send'}</ThemedText>
+          <ThemedText style={[styles.sendText, !canSend && styles.sendTextDisabled]}>
+            {isSending ? '⋯' : '→'}
+          </ThemedText>
         </Pressable>
       </View>
+      
       {lastError ? <ThemedText style={styles.error}>{lastError}</ThemedText> : null}
     </View>
   );
@@ -62,49 +90,88 @@ export function ChatInput({
 
 const styles = StyleSheet.create({
   container: {
+    position: 'relative',
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    backgroundColor: '#0C162E',
-    gap: 6,
+    borderTopColor: colors.ui.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background.primary,
+    gap: spacing.xs,
+  },
+  glowContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  glow: {
+    width: '90%',
+    height: layout.inputHeight,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.accent.gold,
+    opacity: 0.15,
+    // Note: blur effect would require a library like react-native-blur
+    // For now using opacity to simulate glow
   },
   inputRow: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  micButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.background.card,
+  },
+  micIcon: {
+    fontSize: 18,
   },
   input: {
     flex: 1,
-    minHeight: 46,
+    minHeight: layout.inputHeight,
     maxHeight: 140,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#1F2A44',
-    backgroundColor: '#0F1C38',
-    color: '#E2E8F0',
-    fontSize: 15,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background.primary,
+    color: colors.text.primary,
+    ...typography.body.medium,
+    shadowColor: colors.ui.shadow,
+    shadowOpacity: 0.5,
+    shadowRadius: 7.3,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
   },
   sendButton: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: '#0A7EA4',
-    minWidth: 72,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.accent.gold,
   },
   sendButtonDisabled: {
-    backgroundColor: '#1E3A5F',
+    backgroundColor: colors.background.card,
+    opacity: 0.5,
   },
   sendText: {
-    color: '#F8FAFC',
-    fontSize: 15,
+    color: colors.background.primary,
+    fontSize: 24,
     fontWeight: '600',
+  },
+  sendTextDisabled: {
+    color: colors.text.disabled,
   },
   error: {
     color: '#F97316',
-    fontSize: 13,
+    ...typography.body.small,
+    marginTop: spacing.xs,
   },
 });

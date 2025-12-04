@@ -2,15 +2,27 @@ import Constants from 'expo-constants';
 
 import type { MessagesResponse, SendMessageResult } from '@/features/chat/types';
 
+const SUPABASE_URL =
+  Constants.expoConfig?.extra?.supabase?.url ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const API_BASE_URL =
   Constants.expoConfig?.extra?.apiBaseUrl ?? process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
-const withBaseUrl = (path: string) => {
-  if (!API_BASE_URL) {
-    return path;
+const resolveBaseUrl = () => {
+  if (API_BASE_URL) {
+    return API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
   }
-  const normalizedBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-  return `${normalizedBase}${path}`;
+  if (SUPABASE_URL) {
+    const normalized = SUPABASE_URL.endsWith('/') ? SUPABASE_URL.slice(0, -1) : SUPABASE_URL;
+    return `${normalized}/functions/v1`;
+  }
+  throw new Error(
+    'API base URL is not configured. Set EXPO_PUBLIC_API_BASE_URL or EXPO_PUBLIC_SUPABASE_URL.'
+  );
+};
+
+const withBaseUrl = (path: string) => {
+  const base = resolveBaseUrl();
+  return `${base}${path}`;
 };
 
 const buildHeaders = (accessToken?: string) => {
