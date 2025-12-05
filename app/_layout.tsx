@@ -148,12 +148,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <LayoutContent />
-      </AuthProvider>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ErrorBoundary level="app">
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <LayoutContent />
+        </AuthProvider>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
