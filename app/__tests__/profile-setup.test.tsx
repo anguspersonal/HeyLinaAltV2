@@ -1,5 +1,6 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
+
 import ProfileSetupScreen from '../profile-setup';
 
 // Mock expo-router
@@ -7,13 +8,8 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock expo-secure-store with namespace export
-jest.mock('expo-secure-store', () => ({
-  __esModule: true,
-  setItemAsync: jest.fn().mockResolvedValue(undefined),
-  getItemAsync: jest.fn().mockResolvedValue(null),
-  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
-}));
+// Access the global mock
+const mockStorage = (global as any).mockStorage;
 
 describe('ProfileSetupScreen', () => {
   const mockReplace = jest.fn();
@@ -124,6 +120,7 @@ describe('ProfileSetupScreen', () => {
     fireEvent.press(continueButton);
 
     await waitFor(() => {
+      expect(mockStorage.setItem).toHaveBeenCalled();
       expect(mockPush).toHaveBeenCalledWith('/expectation-setting');
     }, { timeout: 10000 });
   });

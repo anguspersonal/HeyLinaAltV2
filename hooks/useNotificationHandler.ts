@@ -17,27 +17,37 @@ export interface NotificationData {
 }
 
 export function useNotificationHandler() {
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<ReturnType<typeof Notifications.addNotificationReceivedListener> | null>(null);
+  const responseListener = useRef<ReturnType<typeof Notifications.addNotificationResponseReceivedListener> | null>(null);
 
   useEffect(() => {
-    // Listen for notifications received while app is foregrounded
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      handleNotificationReceived
-    );
+    try {
+      // Listen for notifications received while app is foregrounded
+      notificationListener.current = Notifications.addNotificationReceivedListener(
+        handleNotificationReceived
+      );
 
-    // Listen for user interactions with notifications
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(
-      handleNotificationResponse
-    );
+      // Listen for user interactions with notifications
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(
+        handleNotificationResponse
+      );
+    } catch (error) {
+      // Silently handle errors (e.g., when running in Expo Go which doesn't support notifications)
+      console.log('Notification listeners not available in this environment');
+    }
 
     // Cleanup listeners on unmount
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+      try {
+        if (notificationListener.current) {
+          notificationListener.current.remove();
+        }
+        if (responseListener.current) {
+          responseListener.current.remove();
+        }
+      } catch (error) {
+        // Silently handle cleanup errors
+        console.log('Error cleaning up notification listeners');
       }
     };
   }, []);
@@ -61,7 +71,7 @@ export function useNotificationHandler() {
   const handleNotificationResponse = async (
     response: Notifications.NotificationResponse
   ) => {
-    const data = response.notification.request.content.data as NotificationData;
+    const data = response.notification.request.content.data as unknown as NotificationData;
     
     console.log('Notification tapped:', data);
 
@@ -122,7 +132,7 @@ export function useNotificationHandler() {
   const navigateToScore = () => {
     try {
       // Navigate to home tab (which shows the score)
-      router.push('/(tabs)/');
+      router.push('/(tabs)/' as any);
     } catch (error) {
       console.error('Error navigating to score:', error);
     }

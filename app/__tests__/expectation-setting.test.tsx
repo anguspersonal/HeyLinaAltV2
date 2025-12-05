@@ -1,6 +1,5 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 
 import ExpectationSettingScreen from '../expectation-setting';
 
@@ -9,15 +8,13 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock expo-secure-store
-jest.mock('expo-secure-store', () => ({
-  setItemAsync: jest.fn(),
-}));
-
 // Mock Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
+
+// Access the global mock
+const mockStorage = (global as any).mockStorage;
 
 describe('ExpectationSettingScreen', () => {
   const mockReplace = jest.fn();
@@ -100,7 +97,7 @@ describe('ExpectationSettingScreen', () => {
     fireEvent.press(continueButton);
     
     await waitFor(() => {
-      expect(SecureStore.setItemAsync).toHaveBeenCalledWith('onboardingCompleted', 'true');
+      expect(mockStorage.setItem).toHaveBeenCalledWith('onboardingCompleted', 'true');
       expect(mockReplace).toHaveBeenCalledWith('/(tabs)');
     });
   });
@@ -156,8 +153,8 @@ describe('ExpectationSettingScreen', () => {
     const termsCheckbox = getByText(/I agree to the/);
     fireEvent.press(termsCheckbox);
     
-    // Mock setItemAsync to delay
-    (SecureStore.setItemAsync as jest.Mock).mockImplementation(
+    // Mock setItem to delay
+    mockStorage.setItem.mockImplementationOnce(
       () => new Promise(resolve => setTimeout(resolve, 100))
     );
     

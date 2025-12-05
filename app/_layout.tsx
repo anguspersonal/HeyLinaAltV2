@@ -11,6 +11,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { FONT_FILES, useAppFonts } from '@/hooks/useFonts';
+import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 import { AuthProvider, useAuth } from '@/stores/auth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -28,8 +29,8 @@ const LayoutContent = () => {
   useEffect(() => {
     const checkWelcomeStatus = async () => {
       try {
-        const { getItem } = await import('expo-secure-store');
-        const seen = await getItem('hasSeenWelcome');
+        const storage = await import('@/lib/storage');
+        const seen = await storage.default.getItem('hasSeenWelcome');
         setHasSeenWelcome(seen === 'true');
       } catch (error) {
         // If we can't check, assume they haven't seen it
@@ -71,14 +72,14 @@ const LayoutContent = () => {
       // Check if onboarding is complete
       const checkOnboarding = async () => {
         try {
-          const { getItem } = await import('expo-secure-store');
-          const onboardingComplete = await getItem('onboardingCompleted');
+          const storage = await import('@/lib/storage');
+          const onboardingComplete = await storage.default.getItem('onboardingCompleted');
           
           if (onboardingComplete === 'true') {
             router.replace('/(tabs)' as any);
           } else {
             // Check if profile setup is complete
-            const profileData = await getItem('profileData');
+            const profileData = await storage.default.getItem('profileData');
             if (profileData) {
               router.replace('/expectation-setting' as any);
             } else {

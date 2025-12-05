@@ -10,13 +10,20 @@ import { Platform } from 'react-native';
  * Configure notification handler behavior
  * This determines how notifications are displayed when the app is in foreground
  */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+} catch (error) {
+  // Silently handle errors in environments that don't support notifications (e.g., Expo Go)
+  console.log('Notification handler not available in this environment');
+}
 
 /**
  * Request notification permissions from the user

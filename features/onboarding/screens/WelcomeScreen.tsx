@@ -59,8 +59,8 @@ export default function WelcomeScreen() {
 
   const handleGetStarted = async () => {
     try {
-      const { setItem } = await import('expo-secure-store');
-      await setItem('hasSeenWelcome', 'true');
+      const storage = await import('@/lib/storage');
+      await storage.default.setItem('hasSeenWelcome', 'true');
     } catch (error) {
       console.error('Failed to save welcome status:', error);
     }

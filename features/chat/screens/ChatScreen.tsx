@@ -19,6 +19,7 @@ import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { useMessages } from '@/features/chat/hooks/useMessages';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
 import type { ChatMessage, ChatMessageStatus } from '@/features/chat/types';
+import { useBookmarks } from '@/features/history/hooks/useBookmarks';
 import { useAuth } from '@/stores/auth';
 
 const keyboardOffset = Platform.select({
