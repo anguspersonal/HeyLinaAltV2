@@ -14,11 +14,7 @@ config.transformer = {
   },
 };
 
-// Optimize resolver
-config.resolver = {
-  ...config.resolver,
-  // Disable symlinks to improve performance
-  disableHierarchicalLookup: true,
-};
+// Keep default resolver settings for better compatibility
+// Removed disableHierarchicalLookup as it was causing module resolution issues
 
 module.exports = config;
