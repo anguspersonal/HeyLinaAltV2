@@ -74,10 +74,11 @@ const isDifferentDay = (date1: string, date2: string): boolean => {
          d1.getFullYear() !== d2.getFullYear();
 };
 
-// Type for list items (messages or date separators)
+// Type for list items (messages, date separators, or safety warnings)
 type ListItem = 
   | { type: 'message'; data: ChatMessage }
-  | { type: 'date'; data: string };
+  | { type: 'date'; data: string }
+  | { type: 'safety-warning'; data: { flag: 'high-risk' | 'crisis' | 'self-harm' | 'abuse'; messageId: string } };
 
 export default function ChatScreen() {
   let session, user;
@@ -202,7 +203,19 @@ export default function ChatScreen() {
     [sendMessage]
   );
 
-  // Create list items with date separators
+  const handlePauseConversation = useCallback(() => {
+    // User can simply stop typing - this is more of a UI acknowledgment
+    setInputFocused(false);
+  }, []);
+
+  const handleExitConversation = useCallback(() => {
+    // Navigate back or to home
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    }
+  }, []);
+
+  // Create list items with date separators and safety warnings
   const listItems = useMemo((): ListItem[] => {
     const items: ListItem[] = [];
     
@@ -212,6 +225,14 @@ export default function ChatScreen() {
         items.push({ type: 'date', data: message.createdAt });
       }
       items.push({ type: 'message', data: message });
+      
+      // Add safety warning if message has a safety flag
+      if (message.safetyFlag) {
+        items.push({ 
+          type: 'safety-warning', 
+          data: { flag: message.safetyFlag, messageId: message.id } 
+        });
+      }
     });
     
     return items;
@@ -304,6 +325,16 @@ export default function ChatScreen() {
       );
     }
     
+    if (item.type === 'safety-warning') {
+      return (
+        <SafetyWarning
+          type={item.data.flag}
+          onPauseConversation={handlePauseConversation}
+          onExitConversation={handleExitConversation}
+        />
+      );
+    }
+    
     return (
       <MessageBubble
         message={item.data}
@@ -317,6 +348,9 @@ export default function ChatScreen() {
   const getItemKey = (item: ListItem, index: number) => {
     if (item.type === 'date') {
       return `date-${item.data}-${index}`;
+    }
+    if (item.type === 'safety-warning') {
+      return `safety-${item.data.messageId}-${item.data.flag}`;
     }
     return item.data.id ?? item.data.localId ?? `${item.data.createdAt}-${index}`;
   };
@@ -336,6 +370,11 @@ export default function ChatScreen() {
             <ThemedText style={styles.subtitle}>
               Get clarity on dating and relationships in a private space.
             </ThemedText>
+            <View style={styles.disclaimer}>
+              <ThemedText style={styles.disclaimerText}>
+                💭 Lina is an AI companion, not a therapist or crisis service
+              </ThemedText>
+            </View>
           </View>
 
           <FlatList
@@ -415,6 +454,17 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: spacing.xs,
     ...typography.body.small,
+  },
+  disclaimer: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.ui.border,
+  },
+  disclaimerText: {
+    color: colors.text.tertiary,
+    ...typography.body.tiny,
+    textAlign: 'center',
   },
   listContent: {
     paddingHorizontal: spacing.sm,

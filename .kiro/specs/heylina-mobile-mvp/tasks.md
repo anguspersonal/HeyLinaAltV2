@@ -620,20 +620,31 @@
   - **Property 22: Error logs exclude sensitive data**
   - **Validates: Requirements 10.2, 11.2, 11.3**
 
-- [ ] 11. Implement safety features and crisis resources
-- [ ] 11.1 Create safety resources component
+- [x] 11. Implement safety features and crisis resources
+
+
+
+
+
+- [x] 11.1 Create safety resources component
+
+
   - Display crisis hotline information
   - Add links to mental health resources
   - Make easily accessible from multiple screens
   - _Requirements: 10.1, 10.3_
 
-- [ ] 11.2 Implement safety warning system
+- [x] 11.2 Implement safety warning system
+
+
   - Detect high-risk topics from backend flags
   - Display inline warnings with resource links
   - Allow users to pause or exit conversation
   - _Requirements: 10.2, 10.4_
 
-- [ ] 11.3 Add disclaimers throughout app
+- [x] 11.3 Add disclaimers throughout app
+
+
   - Add AI disclaimer to onboarding
   - Add "not a therapist" messaging to chat
   - Add crisis resource links to settings

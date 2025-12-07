@@ -6,6 +6,7 @@ export type Message = {
   role: MessageRole;
   content: string;
   createdAt: string;
+  safetyFlag?: 'high-risk' | 'crisis' | 'self-harm' | 'abuse';
 };
 
 export type ChatMessageStatus = 'pending' | 'sent' | 'failed';
