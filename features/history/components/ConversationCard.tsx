@@ -1,3 +1,4 @@
+import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -55,7 +56,7 @@ const highlightText = (text: string, query?: string) => {
   return text;
 };
 
-export function ConversationCard({ conversation, onPress, searchQuery }: ConversationCardProps) {
+export const ConversationCard = memo(function ConversationCard({ conversation, onPress, searchQuery }: ConversationCardProps) {
   const handlePress = () => {
     onPress(conversation.id);
   };
@@ -81,7 +82,7 @@ export function ConversationCard({ conversation, onPress, searchQuery }: Convers
       </View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

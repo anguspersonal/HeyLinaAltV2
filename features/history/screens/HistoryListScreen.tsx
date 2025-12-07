@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
     FlatList,
+    Platform,
     RefreshControl,
     StyleSheet,
     TextInput,
-    View,
+    View
 } from 'react-native';
 
+import { HistoryScreenSkeleton } from '@/components/skeletons/HistoryScreenSkeleton';
 import { ThemedText } from '@/components/themed-text';
 import { borderRadius, colors, spacing, typography } from '@/constants/theme';
 import { ConversationCard } from '@/features/history/components/ConversationCard';
@@ -155,9 +156,7 @@ export function HistoryListScreen({ accessToken, onConversationPress }: HistoryL
       </View>
 
       {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent.gold} />
-        </View>
+        <HistoryScreenSkeleton />
       ) : (
         <FlatList
           data={conversations}
@@ -165,6 +164,11 @@ export function HistoryListScreen({ accessToken, onConversationPress }: HistoryL
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmpty}
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={10}
+          removeClippedSubviews={Platform.OS === 'android'}
+          updateCellsBatchingPeriod={50}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

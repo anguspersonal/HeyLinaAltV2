@@ -6,12 +6,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    ActivityIndicator,
     RefreshControl,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import Svg, {
     Circle,
@@ -52,10 +51,7 @@ export function ScoreDetailScreen() {
   if (isLoading && !score) {
     return (
       <ThemedView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent.gold} />
-          <ThemedText style={styles.loadingText}>Loading your score...</ThemedText>
-        </View>
+        <ScoreDetailSkeleton />
       </ThemedView>
     );
   }

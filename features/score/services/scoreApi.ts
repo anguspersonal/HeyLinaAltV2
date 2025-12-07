@@ -3,6 +3,7 @@ import type {
     ScoreHistory,
     ScoreInsight,
 } from '@/features/score/types';
+import { retryFetch } from '@/lib/retry';
 import Constants from 'expo-constants';
 
 const SUPABASE_URL =

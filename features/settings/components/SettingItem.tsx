@@ -20,27 +20,36 @@ export function SettingItem({
   showChevron = true,
   destructive = false,
 }: SettingItemProps) {
+  // Create accessibility label
+  const accessibilityLabel = subtitle ? `${title}. ${subtitle}` : title;
+  const accessibilityHint = showChevron ? 'Double tap to open' : 'Double tap to activate';
+  
   return (
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
       activeOpacity={0.7}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
     >
-      <View style={styles.content}>
+      <View style={styles.content} accessible={false}>
         {icon && (
           <Ionicons
             name={icon}
             size={24}
             color={destructive ? '#FF6B6B' : colors.accent.gold}
             style={styles.icon}
+            accessible={false}
           />
         )}
-        <View style={styles.textContainer}>
-          <Text style={[styles.title, destructive && styles.destructiveText]}>
+        <View style={styles.textContainer} accessible={false}>
+          <Text style={[styles.title, destructive && styles.destructiveText]} accessible={false}>
             {title}
           </Text>
           {subtitle && (
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text style={styles.subtitle} accessible={false}>{subtitle}</Text>
           )}
         </View>
       </View>
@@ -49,6 +58,7 @@ export function SettingItem({
           name="chevron-forward"
           size={20}
           color={colors.text.tertiary}
+          accessible={false}
         />
       )}
     </TouchableOpacity>

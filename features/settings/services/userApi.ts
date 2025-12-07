@@ -3,6 +3,7 @@
  * Handles user profile, settings, and account management operations
  */
 
+import { retryWithBackoff } from '@/lib/retry';
 import { supabase } from '@/lib/supabase/client';
 import type { NotificationSettings, UserProfile } from '../types';
 

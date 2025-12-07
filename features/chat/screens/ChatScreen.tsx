@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
     FlatList,
     KeyboardAvoidingView,
     Platform,
@@ -9,12 +8,14 @@ import {
     View
 } from 'react-native';
 
+import { ChatScreenSkeleton } from '@/components/skeletons/ChatScreenSkeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { colors, spacing, typography } from '@/constants/theme';
 import { ChatInput } from '@/features/chat/components/ChatInput';
 import { MessageBubble } from '@/features/chat/components/MessageBubble';
 import { QuickActions, type QuickAction } from '@/features/chat/components/QuickActions';
+import { SafetyWarning } from '@/features/chat/components/SafetyWarning';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { useMessages } from '@/features/chat/hooks/useMessages';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
@@ -277,10 +278,7 @@ export default function ChatScreen() {
   if (loading) {
     return (
       <View style={styles.safeArea}>
-        <ThemedView style={styles.centered}>
-          <ActivityIndicator size="large" color="#0A7EA4" />
-          <ThemedText style={styles.loaderText}>Loading your chat...</ThemedText>
-        </ThemedView>
+        <ChatScreenSkeleton />
       </View>
     );
   }
@@ -383,10 +381,12 @@ export default function ChatScreen() {
             renderItem={renderItem}
             keyExtractor={getItemKey}
             contentContainerStyle={styles.listContent}
-            initialNumToRender={20}
-            maxToRenderPerBatch={10}
-            windowSize={21}
-            removeClippedSubviews={true}
+            initialNumToRender={15}
+            maxToRenderPerBatch={5}
+            windowSize={10}
+            removeClippedSubviews={Platform.OS === 'android'}
+            updateCellsBatchingPeriod={50}
+            getItemLayout={undefined}
             refreshControl={
               <RefreshControl 
                 refreshing={refreshing} 

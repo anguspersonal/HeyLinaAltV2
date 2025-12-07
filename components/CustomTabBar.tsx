@@ -62,20 +62,26 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
         // Get icon name from options
         const iconName = getIconName(route.name);
         const iconColor = isFocused ? colors.accent.gold : colors.text.tertiary;
+        
+        // Create accessible label
+        const labelText = typeof label === 'string' ? label : route.name;
+        const accessibilityLabel = options.tabBarAccessibilityLabel || 
+          createTabAccessibilityLabel(labelText, isFocused, index, state.routes.length);
 
         return (
           <TouchableOpacity
             key={route.key}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={`Navigates to ${labelText} screen`}
             testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.tab}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconContainer, isFocused && styles.iconContainerActive]}>
+            <View style={[styles.iconContainer, isFocused && styles.iconContainerActive]} accessible={false}>
               <IconSymbol name={iconName} size={24} color={iconColor} />
             </View>
             <ThemedText
@@ -86,8 +92,9 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                   fontWeight: isFocused ? '500' : '400',
                 },
               ]}
+              accessible={false}
             >
-              {typeof label === 'string' ? label : route.name}
+              {labelText}
             </ThemedText>
           </TouchableOpacity>
         );

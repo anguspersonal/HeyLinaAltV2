@@ -67,11 +67,27 @@ export function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.content}
+      accessible={true}
+      accessibilityLabel="Settings"
+      accessibilityHint="Scroll to view and manage your account settings"
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <Text 
+          style={styles.title}
+          accessibilityRole="header"
+        >
+          Settings
+        </Text>
         {user?.email && (
-          <Text style={styles.email}>{user.email}</Text>
+          <Text 
+            style={styles.email}
+            accessibilityLabel={`Signed in as ${user.email}`}
+          >
+            {user.email}
+          </Text>
         )}
       </View>
 

@@ -1,14 +1,16 @@
+import { AnimatedScoreCircle } from '@/components/animations/AnimatedScoreCircle';
+import { FadeIn } from '@/components/animations/FadeIn';
 import { ThemedText } from '@/components/themed-text';
 import { colors, layout, spacing, typography } from '@/constants/theme';
+import { formatScoreForScreenReader } from '@/lib/accessibility';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View
 } from 'react-native';
-import Svg, { Circle, Defs, Stop, RadialGradient as SvgRadialGradient } from 'react-native-svg';
 import { EmotionalHealthScore, QuickAction } from '../types';
 
 interface ScoreCardProps {
@@ -52,60 +54,34 @@ export function ScoreCard({ score, isLoading = false, onViewDetails }: ScoreCard
   }
 
   const scorePercentage = score.overall / 1000; // Convert to 0-1 range for circle
+  
+  // Create accessibility label for score
+  const scoreAccessibilityLabel = `Your Emotional Health Score is ${formatScoreForScreenReader(score.overall, 1000)}. ${score.interpretation}`;
 
   return (
     <View style={styles.container}>
       {/* Main Score Display */}
-      <View style={styles.scoreSection}>
-        {/* Circular Score Visualization */}
-        <View style={styles.circleContainer}>
-          <Svg width={layout.scoreCircle} height={layout.scoreCircle}>
-            <Defs>
-              <SvgRadialGradient id="scoreGradient" cx="50%" cy="50%">
-                <Stop offset="0%" stopColor="#CEA869" stopOpacity="1" />
-                <Stop offset="20%" stopColor="#E6D8DA" stopOpacity="1" />
-                <Stop offset="40%" stopColor="#EAE8B6" stopOpacity="1" />
-                <Stop offset="60%" stopColor="#F0FF80" stopOpacity="1" />
-                <Stop offset="80%" stopColor="#BBB34D" stopOpacity="1" />
-                <Stop offset="100%" stopColor="#A18D34" stopOpacity="1" />
-              </SvgRadialGradient>
-            </Defs>
-            
-            {/* Background circle */}
-            <Circle
-              cx={layout.scoreCircle / 2}
-              cy={layout.scoreCircle / 2}
-              r={(layout.scoreCircle - 40) / 2}
-              stroke="rgba(255, 255, 255, 0.15)"
-              strokeWidth={40}
-              fill="none"
-            />
-            
-            {/* Progress circle */}
-            <Circle
-              cx={layout.scoreCircle / 2}
-              cy={layout.scoreCircle / 2}
-              r={(layout.scoreCircle - 40) / 2}
-              stroke="url(#scoreGradient)"
-              strokeWidth={40}
-              fill="none"
-              strokeDasharray={`${2 * Math.PI * ((layout.scoreCircle - 40) / 2)}`}
-              strokeDashoffset={`${2 * Math.PI * ((layout.scoreCircle - 40) / 2) * (1 - scorePercentage)}`}
-              strokeLinecap="round"
-              rotation="-90"
-              origin={`${layout.scoreCircle / 2}, ${layout.scoreCircle / 2}`}
-            />
-          </Svg>
+      <View 
+        style={styles.scoreSection}
+        accessible={true}
+        accessibilityRole="text"
+        accessibilityLabel={scoreAccessibilityLabel}
+      >
+        {/* Circular Score Visualization with Animation */}
+        <View style={styles.circleContainer} accessible={false}>
+          <AnimatedScoreCircle score={score.overall} />
           
           {/* Score Value in Center */}
-          <View style={styles.scoreValueContainer}>
-            <ThemedText style={styles.scoreValue}>{score.overall}</ThemedText>
-            <ThemedText style={styles.scoreLabel}>EHS</ThemedText>
+          <View style={styles.scoreValueContainer} accessible={false}>
+            <FadeIn duration={500} delay={800}>
+              <ThemedText style={styles.scoreValue} accessible={false}>{score.overall}</ThemedText>
+              <ThemedText style={styles.scoreLabel} accessible={false}>EHS</ThemedText>
+            </FadeIn>
           </View>
         </View>
 
         {/* Interpretation Text */}
-        <ThemedText style={styles.interpretationText}>
+        <ThemedText style={styles.interpretationText} accessible={false}>
           {score.interpretation}
         </ThemedText>
 
@@ -113,6 +89,11 @@ export function ScoreCard({ score, isLoading = false, onViewDetails }: ScoreCard
         <TouchableOpacity
           style={styles.statisticsToggle}
           onPress={() => setShowStatistics(!showStatistics)}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={showStatistics ? 'Hide statistics' : 'View statistics'}
+          accessibilityHint="Double tap to toggle component breakdown visibility"
+          accessibilityState={{ expanded: showStatistics }}
         >
           <ThemedText style={styles.statisticsToggleText}>
             {showStatistics ? 'Hide' : 'View'} Statistics
@@ -175,13 +156,23 @@ interface ComponentItemProps {
 }
 
 function ComponentItem({ label, value, color }: ComponentItemProps) {
+  const accessibilityLabel = `${label}: ${value} out of 100`;
+  
   return (
-    <View style={styles.componentItem}>
-      <View style={styles.componentInfo}>
-        <View style={[styles.componentColorDot, { backgroundColor: color }]} />
-        <ThemedText style={styles.componentLabel}>{label}</ThemedText>
+    <View 
+      style={styles.componentItem}
+      accessible={true}
+      accessibilityRole="text"
+      accessibilityLabel={accessibilityLabel}
+    >
+      <View style={styles.componentInfo} accessible={false}>
+        <View 
+          style={[styles.componentColorDot, { backgroundColor: color }]} 
+          accessible={false}
+        />
+        <ThemedText style={styles.componentLabel} accessible={false}>{label}</ThemedText>
       </View>
-      <ThemedText style={styles.componentValue}>{value}</ThemedText>
+      <ThemedText style={styles.componentValue} accessible={false}>{value}</ThemedText>
     </View>
   );
 }
