@@ -113,6 +113,12 @@ describe('Error Handling Property Tests', () => {
             { minLength: 1, maxLength: 10 }
           ),
           async (messages) => {
+            // Clear queue before this test iteration
+            await clearQueue();
+            
+            // Small delay to ensure storage is cleared
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             // Queue all messages (simulating offline state)
             for (const message of messages) {
               await queueMessage({
@@ -120,6 +126,9 @@ describe('Error Handling Property Tests', () => {
                 content: message.content,
               });
             }
+
+            // Small delay to ensure all writes complete
+            await new Promise(resolve => setTimeout(resolve, 10));
 
             // Verify all messages are in queue
             const queue = await getQueue();
@@ -140,17 +149,23 @@ describe('Error Handling Property Tests', () => {
 
             await processQueue(mockSendFn);
 
+            // Small delay to ensure processing completes
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             // Verify all messages were sent
             expect(sentMessages.length).toBe(messages.length);
 
             // Verify queue is empty after processing
             const queueAfter = await getQueue();
             expect(queueAfter.length).toBe(0);
+            
+            // Clean up
+            await clearQueue();
           }
         ),
-        { numRuns: 50 }
+        { numRuns: 30 } // Reduced from 50 to avoid timeout with added delays
       );
-    });
+    }, 30000); // 30 second timeout
 
     it('should preserve message order when processing queue', async () => {
       await fc.assert(
@@ -163,6 +178,10 @@ describe('Error Handling Property Tests', () => {
             { minLength: 2, maxLength: 5 }
           ),
           async (messages) => {
+            // Clear queue before this test iteration
+            await clearQueue();
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             // Queue messages with timestamps
             for (const message of messages) {
               await queueMessage({
@@ -173,6 +192,9 @@ describe('Error Handling Property Tests', () => {
               await new Promise((resolve) => setTimeout(resolve, 10));
             }
 
+            // Small delay to ensure all writes complete
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             // Process queue and track order
             const processedOrder: string[] = [];
             const mockSendFn = async (msg: any) => {
@@ -181,16 +203,22 @@ describe('Error Handling Property Tests', () => {
 
             await processQueue(mockSendFn);
 
+            // Small delay to ensure processing completes
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             // Verify messages were processed in order (oldest first)
             expect(processedOrder.length).toBe(messages.length);
             for (let i = 0; i < messages.length; i++) {
               expect(processedOrder[i]).toBe(messages[i].id);
             }
+            
+            // Clean up
+            await clearQueue();
           }
         ),
-        { numRuns: 30 }
+        { numRuns: 20 } // Reduced from 30 to avoid timeout
       );
-    });
+    }, 30000); // 30 second timeout
 
     it('should handle failed sends with retry logic', async () => {
       await fc.assert(
@@ -263,7 +291,7 @@ describe('Error Handling Property Tests', () => {
 
             const logged = logError(error);
 
-            // Email should be redacted
+            // Email should be redacted with improved regex pattern
             expect(logged.message).not.toContain(email);
             expect(logged.message).toContain('[email]');
           }

@@ -84,11 +84,19 @@ export async function fetchConversations({
 
   const url = withBaseUrl(`/conversations?${params.toString()}`);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: buildHeaders(accessToken),
-    signal,
-  });
+  const response = await retryFetch(
+    url,
+    {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+      signal,
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -130,11 +138,19 @@ export async function fetchConversationDetail({
 }): Promise<ConversationDetail> {
   const url = withBaseUrl(`/conversations/${conversationId}`);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: buildHeaders(accessToken),
-    signal,
-  });
+  const response = await retryFetch(
+    url,
+    {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+      signal,
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -164,11 +180,19 @@ export async function fetchBookmarks({
 }): Promise<BookmarksResponse> {
   const url = withBaseUrl(`/bookmarks?limit=${limit}&offset=${offset}`);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: buildHeaders(accessToken),
-    signal,
-  });
+  const response = await retryFetch(
+    url,
+    {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+      signal,
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -212,15 +236,23 @@ export async function createBookmark({
 }): Promise<Bookmark> {
   const url = withBaseUrl('/bookmarks');
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: buildHeaders(accessToken),
-    body: JSON.stringify({
-      messageId,
-      note,
-    }),
-    signal,
-  });
+  const response = await retryFetch(
+    url,
+    {
+      method: 'POST',
+      headers: buildHeaders(accessToken),
+      body: JSON.stringify({
+        messageId,
+        note,
+      }),
+      signal,
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -248,11 +280,19 @@ export async function deleteBookmark({
 }): Promise<void> {
   const url = withBaseUrl(`/bookmarks/${bookmarkId}`);
 
-  const response = await fetch(url, {
-    method: 'DELETE',
-    headers: buildHeaders(accessToken),
-    signal,
-  });
+  const response = await retryFetch(
+    url,
+    {
+      method: 'DELETE',
+      headers: buildHeaders(accessToken),
+      signal,
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));

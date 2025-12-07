@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 
 import type { MessagesResponse, SendMessageResult } from '@/features/chat/types';
+import { retryFetch } from '@/lib/retry';
 
 const SUPABASE_URL =
   Constants.expoConfig?.extra?.supabase?.url ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';

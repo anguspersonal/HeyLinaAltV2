@@ -50,20 +50,29 @@ export async function getCurrentSubscription(
 ): Promise<Subscription | null> {
   // In production: Fetch from backend API
   try {
-    // Mock implementation - check local storage or backend
-    const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/subscriptions`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+    return await retryWithBackoff(
+      async () => {
+        // Mock implementation - check local storage or backend
+        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/subscriptions`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+          },
+        });
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const data = await response.json();
+        return data;
       },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    return data;
+      {
+        maxRetries: 2,
+        baseDelay: 1000,
+        timeout: 10000,
+      }
+    );
   } catch (error) {
     console.error('Error fetching subscription:', error);
     return null;

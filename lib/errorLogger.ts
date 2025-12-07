@@ -23,8 +23,9 @@ export interface SanitizedError {
  * Patterns to detect and remove PII from strings
  */
 const PII_PATTERNS = [
-  // Email addresses (including edge cases like !@a.aa)
-  { pattern: /[^\s@]+@[^\s@]+\.[^\s@]+/g, replacement: '[email]' },
+  // Email addresses (improved pattern to catch more edge cases)
+  // Matches: user@domain.com, !@a.aa, test+tag@example.co.uk, etc.
+  { pattern: /[^\s]+@[^\s]+\.[^\s]+/g, replacement: '[email]' },
   // Phone numbers (various formats)
   { pattern: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, replacement: '[phone]' },
   { pattern: /\+\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, replacement: '[phone]' },
