@@ -650,20 +650,30 @@
   - Add crisis resource links to settings
   - _Requirements: 10.1, 10.5_
 
-- [ ] 12. Implement navigation and routing
-- [ ] 12.1 Set up Expo Router file-based navigation
+- [x] 12. Implement navigation and routing
+
+
+
+
+
+- [x] 12.1 Set up Expo Router file-based navigation
+
+
   - Configure tab navigation for main screens
   - Set up stack navigation for detail screens
   - Implement modal navigation for overlays
   - _Requirements: All (navigation is foundational)_
 
-- [ ] 12.2 Create tab bar component
+- [x] 12.2 Create tab bar component
+
   - Build custom tab bar with design system styling
   - Add icons for each tab (Home, Chat, History, Settings)
   - Implement active state styling
   - _Requirements: All (navigation is foundational)_
 
-- [ ] 12.3 Implement deep linking
+- [x] 12.3 Implement deep linking
+
+
   - Configure deep link URLs
   - Handle notification deep links
   - Handle external deep links (email, etc.)

@@ -1,10 +1,14 @@
 /**
  * Notifications Service
  * Handles notification permissions, scheduling, and configuration
+ * Integrates with deep linking for proper navigation
  */
 
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+
+// Import deep linking utilities for notification navigation
+import { notificationDeepLinks } from '@/lib/deepLinking';
 
 /**
  * Configure notification handler behavior
@@ -254,7 +258,11 @@ export async function scheduleCheckInNotifications(
         content: {
           title: 'Time to check in with Lina 💛',
           body: 'How are you feeling today? Take a moment to reflect.',
-          data: { type: 'check-in', context: 'daily' },
+          data: { 
+            type: 'check-in', 
+            context: 'daily',
+            deepLink: notificationDeepLinks.checkIn('How are you feeling today?'),
+          },
           sound: 'default',
           badge: 1,
         },
@@ -271,7 +279,11 @@ export async function scheduleCheckInNotifications(
         content: {
           title: 'Weekly reflection with Lina 💛',
           body: 'Let\'s look back at your week together.',
-          data: { type: 'check-in', context: 'weekly' },
+          data: { 
+            type: 'check-in', 
+            context: 'weekly',
+            deepLink: notificationDeepLinks.weeklyReflection(),
+          },
           sound: 'default',
           badge: 1,
         },

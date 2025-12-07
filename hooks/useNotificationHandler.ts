@@ -1,6 +1,7 @@
 /**
  * useNotificationHandler Hook
  * Handles notification taps, dismissals, and badge updates
+ * Integrates with deep linking for proper navigation
  */
 
 import { setBadgeCount } from '@/services/notifications';
@@ -67,6 +68,7 @@ export function useNotificationHandler() {
 
   /**
    * Handle user tapping on a notification
+   * Validates: Requirements 7.2 - Notification taps navigate with context
    */
   const handleNotificationResponse = async (
     response: Notifications.NotificationResponse
@@ -78,7 +80,18 @@ export function useNotificationHandler() {
     // Clear badge when user interacts with notification
     await setBadgeCount(0);
 
-    // Navigate based on notification type
+    // Check if notification includes a deep link
+    const deepLink = (data as any).deepLink;
+    if (deepLink && typeof deepLink === 'string') {
+      // Use deep link handler for consistent navigation
+      const { handleDeepLink } = await import('@/lib/deepLinking');
+      const handled = handleDeepLink(deepLink);
+      if (handled) {
+        return;
+      }
+    }
+
+    // Fallback to type-based navigation
     switch (data.type) {
       case 'check-in':
         // Navigate to chat with check-in context

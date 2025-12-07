@@ -16,6 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: config.name ?? 'HeyLina',
     slug: config.slug ?? 'heylina',
+    scheme: 'heylina',
     extra: {
       ...config.extra,
       supabase: {

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet } from 'react-native';
 import 'react-native-reanimated';
 
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -24,6 +25,21 @@ const LayoutContent = () => {
   
   // Set up notification handlers
   useNotificationHandler();
+
+  // Initialize deep linking
+  useEffect(() => {
+    const initDeepLinking = async () => {
+      const { initializeDeepLinking } = await import('@/lib/deepLinking');
+      const cleanup = initializeDeepLinking();
+      return cleanup;
+    };
+
+    const cleanupPromise = initDeepLinking();
+    
+    return () => {
+      cleanupPromise.then((cleanup) => cleanup?.());
+    };
+  }, []);
 
   // Check if user has seen welcome screen
   useEffect(() => {
@@ -112,14 +128,102 @@ const LayoutContent = () => {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="signup" options={{ headerShown: false }} />
-      <Stack.Screen name="profile-setup" options={{ headerShown: false }} />
-      <Stack.Screen name="expectation-setting" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: '#0A080B' },
+      }}
+    >
+      {/* Authentication Screens */}
+      <Stack.Screen 
+        name="welcome" 
+        options={{ 
+          headerShown: false,
+          animation: 'fade',
+        }} 
+      />
+      <Stack.Screen 
+        name="login" 
+        options={{ 
+          headerShown: false,
+          animation: 'slide_from_right',
+        }} 
+      />
+      <Stack.Screen 
+        name="signup" 
+        options={{ 
+          headerShown: false,
+          animation: 'slide_from_right',
+        }} 
+      />
+      
+      {/* Onboarding Screens */}
+      <Stack.Screen 
+        name="profile-setup" 
+        options={{ 
+          headerShown: false,
+          animation: 'slide_from_right',
+        }} 
+      />
+      <Stack.Screen 
+        name="expectation-setting" 
+        options={{ 
+          headerShown: false,
+          animation: 'slide_from_right',
+        }} 
+      />
+      
+      {/* Main App Tabs */}
+      <Stack.Screen 
+        name="(tabs)" 
+        options={{ 
+          headerShown: false,
+          animation: 'fade',
+        }} 
+      />
+      
+      {/* Settings Detail Screens (Stack navigation) */}
+      <Stack.Screen 
+        name="settings/profile" 
+        options={{ 
+          headerShown: true,
+          title: 'Edit Profile',
+          headerStyle: { backgroundColor: '#0A080B' },
+          headerTintColor: '#FFFFFF',
+          animation: 'slide_from_right',
+        }} 
+      />
+      <Stack.Screen 
+        name="settings/notifications" 
+        options={{ 
+          headerShown: true,
+          title: 'Notifications',
+          headerStyle: { backgroundColor: '#0A080B' },
+          headerTintColor: '#FFFFFF',
+          animation: 'slide_from_right',
+        }} 
+      />
+      <Stack.Screen 
+        name="settings/data-privacy" 
+        options={{ 
+          headerShown: true,
+          title: 'Data & Privacy',
+          headerStyle: { backgroundColor: '#0A080B' },
+          headerTintColor: '#FFFFFF',
+          animation: 'slide_from_right',
+        }} 
+      />
+      
+      {/* Modal Screens */}
+      <Stack.Screen 
+        name="modal" 
+        options={{ 
+          presentation: 'modal',
+          title: 'Modal',
+          headerStyle: { backgroundColor: '#0A080B' },
+          headerTintColor: '#FFFFFF',
+        }} 
+      />
     </Stack>
   );
 };
