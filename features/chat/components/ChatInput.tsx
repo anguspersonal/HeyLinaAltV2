@@ -42,6 +42,9 @@ export function ChatInput({
     onSend(trimmed);
     setValue('');
     onValueChange?.('');
+    
+    // Announce to screen reader
+    announceForAccessibility('Message sent');
   };
 
   return (
@@ -53,7 +56,15 @@ export function ChatInput({
       
       <View style={styles.inputRow}>
         {/* Microphone icon placeholder - voice input not implemented yet */}
-        <Pressable style={styles.micButton} disabled>
+        <Pressable 
+          style={styles.micButton} 
+          disabled
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Voice input"
+          accessibilityHint="Voice input not yet available"
+          accessibilityState={{ disabled: true }}
+        >
           <ThemedText style={styles.micIcon}>🎤</ThemedText>
         </Pressable>
         
@@ -70,12 +81,21 @@ export function ChatInput({
           editable={!disabled && !isSending}
           onFocus={() => onFocusChange?.(true)}
           onBlur={() => onFocusChange?.(false)}
+          accessible={true}
+          accessibilityLabel="Message input"
+          accessibilityHint="Type your message to Lina"
+          accessibilityValue={{ text: value }}
         />
         
         <Pressable
           style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
           onPress={handleSend}
           disabled={!canSend}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={isSending ? 'Sending message' : 'Send message'}
+          accessibilityHint="Double tap to send your message"
+          accessibilityState={{ disabled: !canSend }}
         >
           <ThemedText style={[styles.sendText, !canSend && styles.sendTextDisabled]}>
             {isSending ? '⋯' : '→'}

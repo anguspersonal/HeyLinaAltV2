@@ -48,6 +48,11 @@ export default function DashboardScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === 'android'}
+        scrollEventThrottle={16}
+        accessible={true}
+        accessibilityLabel="Dashboard"
+        accessibilityHint="Scroll to view your emotional health score, daily quotes, and insights"
       >
         {/* Personalized Header Component */}
         <PersonalizedHeader userName={displayName} />

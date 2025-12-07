@@ -1,5 +1,4 @@
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
 import {
     ActivityIndicator,
@@ -14,6 +13,7 @@ import { FormWrapper } from '@/components/form-wrapper';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { colors, componentStyles, spacing, typography } from '@/constants/theme';
+import storage from '@/lib/storage';
 
 type AgeRange = '18-24' | '25-29' | '30-34' | '35-39' | '40+';
 type RelationshipStatus = 'single' | 'dating' | 'in-relationship' | 'complicated';
@@ -148,7 +148,7 @@ export default function ProfileSetupScreen() {
     try {
       // TODO: Save profile data to backend/storage
       // For now, we'll just store it locally
-      await SecureStore.setItemAsync('profileData', JSON.stringify({
+      await storage.setItem('profileData', JSON.stringify({
         name: profileData.name.trim(),
         ageRange: profileData.ageRange,
         city: profileData.city.trim(),

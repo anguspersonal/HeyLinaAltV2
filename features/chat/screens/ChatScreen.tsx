@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
     FlatList,
     KeyboardAvoidingView,
     Platform,
@@ -9,16 +8,19 @@ import {
     View
 } from 'react-native';
 
+import { ChatScreenSkeleton } from '@/components/skeletons/ChatScreenSkeleton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { colors, spacing, typography } from '@/constants/theme';
 import { ChatInput } from '@/features/chat/components/ChatInput';
 import { MessageBubble } from '@/features/chat/components/MessageBubble';
 import { QuickActions, type QuickAction } from '@/features/chat/components/QuickActions';
+import { SafetyWarning } from '@/features/chat/components/SafetyWarning';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { useMessages } from '@/features/chat/hooks/useMessages';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
 import type { ChatMessage, ChatMessageStatus } from '@/features/chat/types';
+import { useBookmarks } from '@/features/history/hooks/useBookmarks';
 import { useAuth } from '@/stores/auth';
 
 const keyboardOffset = Platform.select({
@@ -73,10 +75,11 @@ const isDifferentDay = (date1: string, date2: string): boolean => {
          d1.getFullYear() !== d2.getFullYear();
 };
 
-// Type for list items (messages or date separators)
+// Type for list items (messages, date separators, or safety warnings)
 type ListItem = 
   | { type: 'message'; data: ChatMessage }
-  | { type: 'date'; data: string };
+  | { type: 'date'; data: string }
+  | { type: 'safety-warning'; data: { flag: 'high-risk' | 'crisis' | 'self-harm' | 'abuse'; messageId: string } };
 
 export default function ChatScreen() {
   let session, user;
@@ -104,6 +107,10 @@ export default function ChatScreen() {
     setMessages,
     clearError,
   } = useMessages({ accessToken: authError ? undefined : session?.access_token });
+
+  const { bookmarkedMessageIds, toggleBookmark } = useBookmarks({
+    accessToken: authError ? undefined : session?.access_token,
+  });
 
 
 
@@ -197,7 +204,19 @@ export default function ChatScreen() {
     [sendMessage]
   );
 
-  // Create list items with date separators
+  const handlePauseConversation = useCallback(() => {
+    // User can simply stop typing - this is more of a UI acknowledgment
+    setInputFocused(false);
+  }, []);
+
+  const handleExitConversation = useCallback(() => {
+    // Navigate back or to home
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    }
+  }, []);
+
+  // Create list items with date separators and safety warnings
   const listItems = useMemo((): ListItem[] => {
     const items: ListItem[] = [];
     
@@ -207,6 +226,14 @@ export default function ChatScreen() {
         items.push({ type: 'date', data: message.createdAt });
       }
       items.push({ type: 'message', data: message });
+      
+      // Add safety warning if message has a safety flag
+      if (message.safetyFlag) {
+        items.push({ 
+          type: 'safety-warning', 
+          data: { flag: message.safetyFlag, messageId: message.id } 
+        });
+      }
     });
     
     return items;
@@ -251,10 +278,7 @@ export default function ChatScreen() {
   if (loading) {
     return (
       <View style={styles.safeArea}>
-        <ThemedView style={styles.centered}>
-          <ActivityIndicator size="large" color="#0A7EA4" />
-          <ThemedText style={styles.loaderText}>Loading your chat...</ThemedText>
-        </ThemedView>
+        <ChatScreenSkeleton />
       </View>
     );
   }
@@ -277,6 +301,17 @@ export default function ChatScreen() {
     );
   }
 
+  const handleBookmark = useCallback(
+    async (messageId: string) => {
+      try {
+        await toggleBookmark(messageId);
+      } catch (error) {
+        console.error('Failed to toggle bookmark:', error);
+      }
+    },
+    [toggleBookmark]
+  );
+
   const renderItem = ({ item }: { item: ListItem }) => {
     if (item.type === 'date') {
       return (
@@ -288,10 +323,22 @@ export default function ChatScreen() {
       );
     }
     
+    if (item.type === 'safety-warning') {
+      return (
+        <SafetyWarning
+          type={item.data.flag}
+          onPauseConversation={handlePauseConversation}
+          onExitConversation={handleExitConversation}
+        />
+      );
+    }
+    
     return (
       <MessageBubble
         message={item.data}
         onRetry={item.data.status === 'failed' ? () => handleRetry(item.data) : undefined}
+        onBookmark={handleBookmark}
+        isBookmarked={bookmarkedMessageIds.has(item.data.id)}
       />
     );
   };
@@ -299,6 +346,9 @@ export default function ChatScreen() {
   const getItemKey = (item: ListItem, index: number) => {
     if (item.type === 'date') {
       return `date-${item.data}-${index}`;
+    }
+    if (item.type === 'safety-warning') {
+      return `safety-${item.data.messageId}-${item.data.flag}`;
     }
     return item.data.id ?? item.data.localId ?? `${item.data.createdAt}-${index}`;
   };
@@ -318,6 +368,11 @@ export default function ChatScreen() {
             <ThemedText style={styles.subtitle}>
               Get clarity on dating and relationships in a private space.
             </ThemedText>
+            <View style={styles.disclaimer}>
+              <ThemedText style={styles.disclaimerText}>
+                💭 Lina is an AI companion, not a therapist or crisis service
+              </ThemedText>
+            </View>
           </View>
 
           <FlatList
@@ -326,10 +381,12 @@ export default function ChatScreen() {
             renderItem={renderItem}
             keyExtractor={getItemKey}
             contentContainerStyle={styles.listContent}
-            initialNumToRender={20}
-            maxToRenderPerBatch={10}
-            windowSize={21}
-            removeClippedSubviews={true}
+            initialNumToRender={15}
+            maxToRenderPerBatch={5}
+            windowSize={10}
+            removeClippedSubviews={Platform.OS === 'android'}
+            updateCellsBatchingPeriod={50}
+            getItemLayout={undefined}
             refreshControl={
               <RefreshControl 
                 refreshing={refreshing} 
@@ -397,6 +454,17 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: spacing.xs,
     ...typography.body.small,
+  },
+  disclaimer: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.ui.border,
+  },
+  disclaimerText: {
+    color: colors.text.tertiary,
+    ...typography.body.tiny,
+    textAlign: 'center',
   },
   listContent: {
     paddingHorizontal: spacing.sm,

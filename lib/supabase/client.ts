@@ -14,35 +14,43 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const secureStoreAdapter = {
-  getItem: async (key: string) => SecureStore.getItemAsync(key),
-  setItem: async (key: string, value: string) => {
-    await SecureStore.setItemAsync(key, value, {
+  getItem: (key: string) => {
+    return SecureStore.getItemAsync(key);
+  },
+  setItem: (key: string, value: string) => {
+    return SecureStore.setItemAsync(key, value, {
       keychainService: 'heylina.supabase.auth',
     });
   },
-  removeItem: async (key: string) => SecureStore.deleteItemAsync(key),
+  removeItem: (key: string) => {
+    return SecureStore.deleteItemAsync(key);
+  },
 };
 
 const browserStorageAdapter = {
-  getItem: async (key: string) => {
+  getItem: (key: string) => {
     try {
-      return globalThis?.localStorage?.getItem(key) ?? null;
+      return Promise.resolve(globalThis?.localStorage?.getItem(key) ?? null);
     } catch {
-      return null;
+      return Promise.resolve(null);
     }
   },
-  setItem: async (key: string, value: string) => {
+  setItem: (key: string, value: string) => {
     try {
       globalThis?.localStorage?.setItem(key, value);
+      return Promise.resolve();
     } catch {
       // ignore write failures (e.g., storage disabled)
+      return Promise.resolve();
     }
   },
-  removeItem: async (key: string) => {
+  removeItem: (key: string) => {
     try {
       globalThis?.localStorage?.removeItem(key);
+      return Promise.resolve();
     } catch {
       // ignore remove failures
+      return Promise.resolve();
     }
   },
 };

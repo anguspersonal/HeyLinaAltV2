@@ -1,5 +1,4 @@
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
 import {
     ActivityIndicator,
@@ -13,6 +12,7 @@ import {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { colors, componentStyles, spacing, typography } from '@/constants/theme';
+import storage from '@/lib/storage';
 
 const CRISIS_RESOURCES = [
   {
@@ -46,7 +46,7 @@ export default function ExpectationSettingScreen() {
     setLoading(true);
     try {
       // Mark onboarding as complete
-      await SecureStore.setItemAsync('onboardingCompleted', 'true');
+      await storage.setItem('onboardingCompleted', 'true');
       
       // Navigate to main app
       router.replace('/(tabs)' as any);

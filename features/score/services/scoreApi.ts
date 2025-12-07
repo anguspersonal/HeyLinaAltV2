@@ -3,6 +3,7 @@ import type {
     ScoreHistory,
     ScoreInsight,
 } from '@/features/score/types';
+import { retryFetch } from '@/lib/retry';
 import Constants from 'expo-constants';
 
 const SUPABASE_URL =
@@ -58,25 +59,7 @@ const parseErrorMessage = async (response: Response) => {
   return `${response.status} ${response.statusText}`.trim();
 };
 
-/**
- * Retry a function with exponential backoff
- */
-async function retryWithBackoff<T>(
-  operation: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000
-): Promise<T> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (attempt === maxRetries - 1) throw error;
-      const delay = baseDelay * Math.pow(2, attempt);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error('Max retries exceeded');
-}
+
 
 /**
  * Get the current Emotional Health Score for the authenticated user
@@ -85,38 +68,44 @@ export async function getCurrentScore(
   accessToken: string,
   signal?: AbortSignal
 ): Promise<EmotionalHealthScore> {
-  return retryWithBackoff(async () => {
-    const url = withBaseUrl('/score');
+  const url = withBaseUrl('/score');
 
-    const response = await fetch(url, {
+  const response = await retryFetch(
+    url,
+    {
       method: 'GET',
       headers: buildHeaders(accessToken),
       signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(await parseErrorMessage(response));
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
     }
+  );
 
-    const rawData = await response.json();
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
 
-    // Handle Supabase Edge Function response format: { ok: true, data: { ... } }
-    let data = rawData;
-    if (rawData.ok && rawData.data) {
-      data = rawData.data;
-    }
+  const rawData = await response.json();
 
-    // Validate response structure
-    if (!data || typeof data !== 'object') {
-      throw new Error('Invalid response format from server');
-    }
+  // Handle Supabase Edge Function response format: { ok: true, data: { ... } }
+  let data = rawData;
+  if (rawData.ok && rawData.data) {
+    data = rawData.data;
+  }
 
-    if (typeof data.overall !== 'number' || !data.components || !data.interpretation) {
-      throw new Error('Invalid score data structure');
-    }
+  // Validate response structure
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid response format from server');
+  }
 
-    return data as EmotionalHealthScore;
-  });
+  if (typeof data.overall !== 'number' || !data.components || !data.interpretation) {
+    throw new Error('Invalid score data structure');
+  }
+
+  return data as EmotionalHealthScore;
 }
 
 /**
@@ -133,47 +122,53 @@ export async function getScoreHistory({
   accessToken: string;
   signal?: AbortSignal;
 }): Promise<ScoreHistory> {
-  return retryWithBackoff(async () => {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
 
-    const queryString = params.toString();
-    const url = withBaseUrl(`/score/history${queryString ? `?${queryString}` : ''}`);
+  const queryString = params.toString();
+  const url = withBaseUrl(`/score/history${queryString ? `?${queryString}` : ''}`);
 
-    const response = await fetch(url, {
+  const response = await retryFetch(
+    url,
+    {
       method: 'GET',
       headers: buildHeaders(accessToken),
       signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(await parseErrorMessage(response));
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
     }
+  );
 
-    const rawData = await response.json();
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
 
-    // Handle Supabase Edge Function response format
-    let data = rawData;
-    if (rawData.ok && rawData.data) {
-      data = rawData.data;
-    }
+  const rawData = await response.json();
 
-    // Validate response structure
-    if (!data || typeof data !== 'object') {
-      throw new Error('Invalid response format from server');
-    }
+  // Handle Supabase Edge Function response format
+  let data = rawData;
+  if (rawData.ok && rawData.data) {
+    data = rawData.data;
+  }
 
-    if (!Array.isArray(data.dataPoints)) {
-      console.warn('API returned non-array dataPoints, returning empty history');
-      return {
-        dataPoints: [],
-        trend: 'stable',
-      };
-    }
+  // Validate response structure
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid response format from server');
+  }
 
-    return data as ScoreHistory;
-  });
+  if (!Array.isArray(data.dataPoints)) {
+    console.warn('API returned non-array dataPoints, returning empty history');
+    return {
+      dataPoints: [],
+      trend: 'stable',
+    };
+  }
+
+  return data as ScoreHistory;
 }
 
 /**
@@ -183,40 +178,46 @@ export async function getScoreInsights(
   accessToken: string,
   signal?: AbortSignal
 ): Promise<ScoreInsight[]> {
-  return retryWithBackoff(async () => {
-    const url = withBaseUrl('/score/insights');
+  const url = withBaseUrl('/score/insights');
 
-    const response = await fetch(url, {
+  const response = await retryFetch(
+    url,
+    {
       method: 'GET',
       headers: buildHeaders(accessToken),
       signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(await parseErrorMessage(response));
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 10000,
     }
+  );
 
-    const rawData = await response.json();
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
 
-    // Handle Supabase Edge Function response format
-    let data = rawData;
-    if (rawData.ok && rawData.data) {
-      data = rawData.data;
-    }
+  const rawData = await response.json();
 
-    // Validate response structure
-    if (!data || typeof data !== 'object') {
-      throw new Error('Invalid response format from server');
-    }
+  // Handle Supabase Edge Function response format
+  let data = rawData;
+  if (rawData.ok && rawData.data) {
+    data = rawData.data;
+  }
 
-    // Handle both array response and object with insights property
-    const insights = Array.isArray(data) ? data : data.insights;
+  // Validate response structure
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid response format from server');
+  }
 
-    if (!Array.isArray(insights)) {
-      console.warn('API returned non-array insights, returning empty array');
-      return [];
-    }
+  // Handle both array response and object with insights property
+  const insights = Array.isArray(data) ? data : data.insights;
 
-    return insights as ScoreInsight[];
-  });
+  if (!Array.isArray(insights)) {
+    console.warn('API returned non-array insights, returning empty array');
+    return [];
+  }
+
+  return insights as ScoreInsight[];
 }

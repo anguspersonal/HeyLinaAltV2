@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 
 import type { MessagesResponse, SendMessageResult } from '@/features/chat/types';
+import { retryFetch } from '@/lib/retry';
 
 const SUPABASE_URL =
   Constants.expoConfig?.extra?.supabase?.url ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
@@ -68,11 +69,19 @@ export async function fetchMessages({
 }): Promise<MessagesResponse> {
   const url = withBaseUrl(`/messages?limit=${limit}&offset=${offset}`);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: buildHeaders(accessToken),
-    signal,
-  });
+  const response = await retryFetch(
+    url,
+    {
+      method: 'GET',
+      headers: buildHeaders(accessToken),
+      signal,
+    },
+    {
+      maxRetries: 2,
+      baseDelay: 1000,
+      timeout: 15000,
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -116,15 +125,23 @@ export async function sendMessage({
   idempotencyKey?: string;
   signal?: AbortSignal;
 }): Promise<SendMessageResult> {
-  const response = await fetch(withBaseUrl('/messages'), {
-    method: 'POST',
-    headers: buildHeaders(accessToken),
-    body: JSON.stringify({
-      content,
-      idempotencyKey,
-    }),
-    signal,
-  });
+  const response = await retryFetch(
+    withBaseUrl('/messages'),
+    {
+      method: 'POST',
+      headers: buildHeaders(accessToken),
+      body: JSON.stringify({
+        content,
+        idempotencyKey,
+      }),
+      signal,
+    },
+    {
+      maxRetries: 3,
+      baseDelay: 1000,
+      timeout: 30000, // 30 seconds for AI response
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));

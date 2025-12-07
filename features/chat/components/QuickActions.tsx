@@ -54,19 +54,33 @@ export function QuickActions({
 
   return (
     <View style={styles.container}>
-      <ThemedText style={styles.title}>Quick prompts</ThemedText>
+      <ThemedText 
+        style={styles.title}
+        accessibilityRole="header"
+      >
+        Quick prompts
+      </ThemedText>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        accessible={true}
+        accessibilityLabel="Quick conversation prompts"
+        accessibilityHint="Swipe to browse suggested topics"
       >
-        {actions.map((action) => (
+        {actions.map((action, index) => (
           <Pressable
             key={action.id}
             style={styles.actionButton}
             onPress={() => onSelect(action)}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={action.label}
+            accessibilityHint={`Double tap to start conversation about ${action.label.toLowerCase()}`}
           >
-            <ThemedText style={styles.actionText}>{action.label}</ThemedText>
+            <ThemedText style={styles.actionText} accessible={false}>
+              {action.label}
+            </ThemedText>
           </Pressable>
         ))}
       </ScrollView>

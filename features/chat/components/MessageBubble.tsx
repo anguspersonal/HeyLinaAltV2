@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -27,7 +27,7 @@ const formatTime = (timestamp: string) => {
   }
 };
 
-export function MessageBubble({ message, onRetry, onBookmark, isBookmarked = false }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, onRetry, onBookmark, isBookmarked = false }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const isUser = message.role === 'user';
   const isLina = message.role === 'assistant';
@@ -48,6 +48,7 @@ export function MessageBubble({ message, onRetry, onBookmark, isBookmarked = fal
   const handleBookmark = () => {
     if (onBookmark && message.id) {
       onBookmark(message.id);
+      setShowActions(false); // Close actions after bookmarking
     }
   };
 
@@ -57,44 +58,79 @@ export function MessageBubble({ message, onRetry, onBookmark, isBookmarked = fal
     }
   };
 
+  // Create accessibility label
+  const accessibilityLabel = createMessageAccessibilityLabel(
+    message.role,
+    message.content,
+    message.createdAt,
+    status
+  );
+
+  const accessibilityHint = isLina && onBookmark 
+    ? 'Long press to bookmark this message' 
+    : undefined;
+
   return (
     <View style={containerStyle}>
-      <Pressable 
-        style={bubbleStyle}
-        onLongPress={handleLongPress}
-        delayLongPress={300}
-      >
-        <ThemedText style={[styles.content, isUser && styles.userContent]}>
-          {message.content}
-        </ThemedText>
-        <View style={styles.metaRow}>
-          <ThemedText style={styles.time}>
-            {formatTime(message.createdAt)}
+        <Pressable 
+          style={bubbleStyle}
+          onLongPress={handleLongPress}
+          delayLongPress={300}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={accessibilityLabel}
+          accessibilityHint={accessibilityHint}
+          accessibilityState={{
+            disabled: status === 'pending',
+          }}
+        >
+          <ThemedText 
+            style={[styles.content, isUser && styles.userContent]}
+            accessible={false}
+          >
+            {message.content}
           </ThemedText>
-          {statusText ? (
-            <View style={styles.statusPill}>
-              <ThemedText style={styles.statusText}>{statusText}</ThemedText>
-            </View>
-          ) : null}
-          {status === 'failed' && onRetry ? (
-            <Pressable onPress={onRetry}>
-              <ThemedText style={styles.retry}>Retry</ThemedText>
-            </Pressable>
-          ) : null}
-        </View>
-        {showActions && isLina && onBookmark && (
-          <View style={styles.actions}>
-            <Pressable style={styles.actionButton} onPress={handleBookmark}>
-              <ThemedText style={styles.actionText}>
-                {isBookmarked ? '★ Bookmarked' : '☆ Bookmark'}
-              </ThemedText>
-            </Pressable>
+          <View style={styles.metaRow} accessible={false}>
+            <ThemedText style={styles.time} accessible={false}>
+              {formatTime(message.createdAt)}
+            </ThemedText>
+            {statusText ? (
+              <View style={styles.statusPill} accessible={false}>
+                <ThemedText style={styles.statusText} accessible={false}>{statusText}</ThemedText>
+              </View>
+            ) : null}
+            {status === 'failed' && onRetry ? (
+              <Pressable 
+                onPress={onRetry}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Retry sending message"
+                accessibilityHint="Double tap to resend this message"
+              >
+                <ThemedText style={styles.retry}>Retry</ThemedText>
+              </Pressable>
+            ) : null}
           </View>
-        )}
-      </Pressable>
-    </View>
+          {showActions && isLina && onBookmark && (
+            <View style={styles.actions} accessible={false}>
+              <Pressable 
+                style={styles.actionButton} 
+                onPress={handleBookmark}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={isBookmarked ? 'Remove bookmark' : 'Bookmark message'}
+                accessibilityHint={isBookmarked ? 'Double tap to remove bookmark' : 'Double tap to bookmark this message'}
+              >
+                <ThemedText style={styles.actionText}>
+                  {isBookmarked ? '★ Bookmarked' : '☆ Bookmark'}
+                </ThemedText>
+              </Pressable>
+            </View>
+          )}
+        </Pressable>
+      </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

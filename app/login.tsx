@@ -94,7 +94,10 @@ export default function LoginScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.content}>
-        <ThemedText style={styles.title}>
+        <ThemedText 
+          style={styles.title}
+          accessibilityRole="header"
+        >
           Welcome back
         </ThemedText>
         <ThemedText style={styles.subtitle}>
@@ -116,9 +119,19 @@ export default function LoginScreen() {
               value={email}
               onChangeText={handleEmailChange}
               editable={!loading}
+              accessible={true}
+              accessibilityLabel="Email address"
+              accessibilityHint="Enter your email address"
+              accessibilityValue={{ text: email }}
             />
             {validationErrors.email && (
-              <ThemedText style={styles.errorText}>{validationErrors.email}</ThemedText>
+              <ThemedText 
+                style={styles.errorText}
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
+              >
+                {validationErrors.email}
+              </ThemedText>
             )}
           </View>
 
@@ -136,15 +149,30 @@ export default function LoginScreen() {
               value={password}
               onChangeText={handlePasswordChange}
               editable={!loading}
+              accessible={true}
+              accessibilityLabel="Password"
+              accessibilityHint="Enter your password"
             />
             {validationErrors.password && (
-              <ThemedText style={styles.errorText}>{validationErrors.password}</ThemedText>
+              <ThemedText 
+                style={styles.errorText}
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
+              >
+                {validationErrors.password}
+              </ThemedText>
             )}
           </View>
 
           {error && (
             <View style={styles.errorContainer}>
-              <ThemedText style={styles.errorText}>{error}</ThemedText>
+              <ThemedText 
+                style={styles.errorText}
+                accessibilityRole="alert"
+                accessibilityLiveRegion="assertive"
+              >
+                {error}
+              </ThemedText>
             </View>
           )}
 
@@ -155,9 +183,17 @@ export default function LoginScreen() {
             ]} 
             onPress={handleSubmit} 
             disabled={loading}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={loading ? 'Signing in' : 'Sign in'}
+            accessibilityHint="Double tap to sign in to your account"
+            accessibilityState={{ disabled: loading, busy: loading }}
           >
             {loading ? (
-              <ActivityIndicator color={colors.text.primary} />
+              <ActivityIndicator 
+                color={colors.text.primary}
+                accessible={false}
+              />
             ) : (
               <ThemedText style={styles.buttonText}>
                 Sign in
@@ -166,10 +202,17 @@ export default function LoginScreen() {
           </Pressable>
         </FormWrapper>
 
-        <Link href="/signup" style={styles.link}>
-          <ThemedText style={styles.linkText}>
-            Need to create an account?
-          </ThemedText>
+        <Link href="/signup" style={styles.link} asChild>
+          <Pressable
+            accessible={true}
+            accessibilityRole="link"
+            accessibilityLabel="Need to create an account?"
+            accessibilityHint="Double tap to go to sign up screen"
+          >
+            <ThemedText style={styles.linkText}>
+              Need to create an account?
+            </ThemedText>
+          </Pressable>
         </Link>
       </View>
     </ThemedView>

@@ -631,13 +631,14 @@ describe('Chat Property-Based Tests', () => {
     it('should restore quick actions when input is cleared', async () => {
       await fc.assert(
         fc.asyncProperty(
-          fc.string({ minLength: 1, maxLength: 100 }),
+          fc.string({ minLength: 1, maxLength: 100 }).filter(s => s.trim().length > 0),
           async (initialContent) => {
             // Start with content (quick actions hidden)
             let hasContent = initialContent.trim().length > 0;
             let isFocused = true;
             let shouldShowQuickActions = !(hasContent && isFocused);
             
+            // With non-empty content and focus, quick actions should be hidden
             expect(shouldShowQuickActions).toBe(false);
 
             // Clear input

@@ -1,13 +1,15 @@
 import { ThemedText } from '@/components/themed-text';
 import { colors, layout, spacing, typography } from '@/constants/theme';
+import { Image } from 'expo-image';
 import React from 'react';
 import {
-    Image,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
 } from 'react-native';
+
+const { memo } = React;
 
 interface ClarityInsight {
   id: string;
@@ -26,7 +28,7 @@ interface ClarityHitsProps {
   onInsightPress?: (insightId: string) => void;
 }
 
-export function ClarityHits({
+export const ClarityHits = memo(function ClarityHits({
   insights,
   isLoading = false,
   onBookmark,
@@ -112,7 +114,7 @@ export function ClarityHits({
       </ScrollView>
     </View>
   );
-}
+});
 
 interface InsightCardProps {
   insight: ClarityInsight;
@@ -121,7 +123,7 @@ interface InsightCardProps {
   onLike?: () => void;
 }
 
-function InsightCard({ insight, onPress, onBookmark, onLike }: InsightCardProps) {
+const InsightCard = memo(function InsightCard({ insight, onPress, onBookmark, onLike }: InsightCardProps) {
   // Category colors
   const categoryColors: Record<string, string> = {
     'Attachment': '#9BA23B',
@@ -150,7 +152,9 @@ function InsightCard({ insight, onPress, onBookmark, onLike }: InsightCardProps)
             <Image
               source={{ uri: insight.imageUrl }}
               style={styles.image}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
             />
           ) : (
             <View style={styles.placeholderContent}>
@@ -203,7 +207,7 @@ function InsightCard({ insight, onPress, onBookmark, onLike }: InsightCardProps)
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
